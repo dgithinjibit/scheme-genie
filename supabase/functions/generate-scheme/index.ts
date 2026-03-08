@@ -80,6 +80,27 @@ function extractJsonArray(raw: string): SchemeRow[] {
   throw new Error("No parseable JSON found in response");
 }
 
+/**
+ * GUARDRAIL: Fix week/lesson numbering after AI generation.
+ * The AI sometimes ignores the "reset lesson numbers each week" instruction,
+ * producing lesson 17 instead of Week 4 Lesson 2. This function enforces
+ * correct sequential numbering programmatically.
+ */
+function enforceWeekLessonNumbering(rows: SchemeRow[], weekStart: number, lessonsPerWeek: number): SchemeRow[] {
+  let currentWeek = weekStart;
+  let currentLesson = 1;
+
+  return rows.map((row) => {
+    const fixed = { ...row, week: currentWeek, lesson: currentLesson };
+    currentLesson++;
+    if (currentLesson > lessonsPerWeek) {
+      currentLesson = 1;
+      currentWeek++;
+    }
+    return fixed;
+  });
+}
+
 const MAX_LESSONS_PER_BATCH = 8;
 
 async function generateBatch(
