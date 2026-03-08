@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { grades, subjects, strandsBySubject, type SchemeRow } from "@/data/curriculum";
 import SchemePreview from "./SchemePreview";
 import { FileText, Download, Save, Loader2, Sparkles } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { columnHeaders, kiswahiliSubjects } from "@/data/curriculum";
 
 const SchemeGeneratorDialog = () => {
