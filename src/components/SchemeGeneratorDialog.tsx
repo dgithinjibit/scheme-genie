@@ -248,16 +248,20 @@ const SchemeGeneratorDialog = () => {
                   <p><span className="font-medium">Strand:</span> {strand}</p>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Additional Context (Optional)</label>
+                  <label className="text-sm font-medium">
+                    {kiswahiliSubjects.includes(subject)
+                      ? "Unapanga kutumia rasilimali gani za kujifunza?"
+                      : "What learning resources do you plan on using?"}
+                  </label>
                   <Textarea
                     value={context}
                     onChange={(e) => setContext(e.target.value)}
                     placeholder={
                       kiswahiliSubjects.includes(subject)
-                        ? "Andika muktadha wa ziada hapa... (k.m., mada maalum, malengo ya somo)"
-                        : "Add extra context here... (e.g., specific topics, lesson objectives, learner needs)"
+                        ? "k.m., vitabu vya kiada, video, vifaa vya sanaa..."
+                        : "e.g., textbooks, videos, art supplies, musical instruments, outdoor space..."
                     }
-                    rows={4}
+                    rows={3}
                   />
                 </div>
                 <div className="flex gap-2">
