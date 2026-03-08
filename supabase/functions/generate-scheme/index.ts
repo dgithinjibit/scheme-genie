@@ -239,23 +239,16 @@ async function generateForSubStrand(
       batchSize, context, isSw, currentWeek, lessonsPerWeek, batchIndex
     );
     allRows.push(...rows);
-
-    // Advance week based on rows generated
-    const maxWeek = rows.reduce((max, r) => Math.max(max, r.week || 0), currentWeek);
-    // Check if last row fills the week
-    const lastRow = rows[rows.length - 1];
-    if (lastRow && lastRow.lesson >= lessonsPerWeek) {
-      currentWeek = maxWeek + 1;
-    } else {
-      currentWeek = maxWeek;
-    }
-
     remaining -= batchSize;
     batchIndex++;
   }
 
-  const maxWeek = allRows.reduce((max, r) => Math.max(max, r.week || 0), weekStart);
-  return { rows: allRows, weeksUsed: maxWeek - weekStart + 1 };
+  // GUARDRAIL: Enforce correct week/lesson numbering regardless of AI output
+  const fixedRows = enforceWeekLessonNumbering(allRows, weekStart, lessonsPerWeek);
+  console.log(`Post-processing: enforced week/lesson numbering for ${fixedRows.length} rows starting week ${weekStart}`);
+
+  const totalWeeks = Math.ceil(fixedRows.length / lessonsPerWeek);
+  return { rows: fixedRows, weeksUsed: totalWeeks };
 }
 
 // Fetch reference schemes from database to enhance AI context
