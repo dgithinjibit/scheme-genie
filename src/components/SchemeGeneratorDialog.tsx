@@ -16,10 +16,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { grades, subjects, strandsBySubject, generateSampleScheme, type SchemeRow } from "@/data/curriculum";
+import { grades, subjects, strandsBySubject, type SchemeRow } from "@/data/curriculum";
 import SchemePreview from "./SchemePreview";
 import { FileText, Download, Save, Loader2, Sparkles } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
 import { columnHeaders, kiswahiliSubjects } from "@/data/curriculum";
 
 const SchemeGeneratorDialog = () => {
