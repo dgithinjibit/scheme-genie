@@ -80,6 +80,27 @@ function extractJsonArray(raw: string): SchemeRow[] {
   throw new Error("No parseable JSON found in response");
 }
 
+/**
+ * GUARDRAIL: Fix week/lesson numbering after AI generation.
+ * The AI sometimes ignores the "reset lesson numbers each week" instruction,
+ * producing lesson 17 instead of Week 4 Lesson 2. This function enforces
+ * correct sequential numbering programmatically.
+ */
+function enforceWeekLessonNumbering(rows: SchemeRow[], weekStart: number, lessonsPerWeek: number): SchemeRow[] {
+  let currentWeek = weekStart;
+  let currentLesson = 1;
+
+  return rows.map((row) => {
+    const fixed = { ...row, week: currentWeek, lesson: currentLesson };
+    currentLesson++;
+    if (currentLesson > lessonsPerWeek) {
+      currentLesson = 1;
+      currentWeek++;
+    }
+    return fixed;
+  });
+}
+
 const MAX_LESSONS_PER_BATCH = 8;
 
 async function generateBatch(
@@ -218,23 +239,16 @@ async function generateForSubStrand(
       batchSize, context, isSw, currentWeek, lessonsPerWeek, batchIndex
     );
     allRows.push(...rows);
-
-    // Advance week based on rows generated
-    const maxWeek = rows.reduce((max, r) => Math.max(max, r.week || 0), currentWeek);
-    // Check if last row fills the week
-    const lastRow = rows[rows.length - 1];
-    if (lastRow && lastRow.lesson >= lessonsPerWeek) {
-      currentWeek = maxWeek + 1;
-    } else {
-      currentWeek = maxWeek;
-    }
-
     remaining -= batchSize;
     batchIndex++;
   }
 
-  const maxWeek = allRows.reduce((max, r) => Math.max(max, r.week || 0), weekStart);
-  return { rows: allRows, weeksUsed: maxWeek - weekStart + 1 };
+  // GUARDRAIL: Enforce correct week/lesson numbering regardless of AI output
+  const fixedRows = enforceWeekLessonNumbering(allRows, weekStart, lessonsPerWeek);
+  console.log(`Post-processing: enforced week/lesson numbering for ${fixedRows.length} rows starting week ${weekStart}`);
+
+  const totalWeeks = Math.ceil(fixedRows.length / lessonsPerWeek);
+  return { rows: fixedRows, weeksUsed: totalWeeks };
 }
 
 // Fetch reference schemes from database to enhance AI context
@@ -402,7 +416,7 @@ Return ONLY a valid JSON array.`;
       );
     }
 
-    const rows = extractJsonArray(rawContent);
+    let rows = extractJsonArray(rawContent);
 
     if (rows.length === 0) {
       return new Response(
@@ -411,7 +425,9 @@ Return ONLY a valid JSON array.`;
       );
     }
 
-    console.log(`Generated ${rows.length} lesson rows successfully`);
+    // GUARDRAIL: Enforce correct week/lesson numbering
+    rows = enforceWeekLessonNumbering(rows, 1, lessonsPerWeek);
+    console.log(`Generated ${rows.length} lesson rows successfully (with numbering fix)`);
 
     return new Response(
       JSON.stringify({ rows, source: "ai_knowledge" }),
