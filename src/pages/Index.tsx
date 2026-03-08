@@ -88,6 +88,14 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Admin Tools */}
+      <section className="px-6 py-4 flex justify-center">
+        <Button variant="outline" size="sm" onClick={handleScrapeSchemes} disabled={scraping}>
+          {scraping ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Database className="w-4 h-4 mr-2" />}
+          {scraping ? "Indexing Schemes..." : "Update Scheme References"}
+        </Button>
+      </section>
+
       {/* Footer */}
       <footer className="py-6 text-center text-xs text-muted-foreground border-t border-border">
         Schemer — CBC Scheme of Work Generator • Aligned with KICD Standards
