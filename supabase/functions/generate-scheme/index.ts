@@ -125,10 +125,18 @@ async function generateBatch(
 RULES:
 1. Generate EXACTLY ${batchLessons} lesson rows.
 2. Keep everything SIMPLE and age-appropriate for ${grade} children.
-3. Specific Learning Outcomes: For each lesson, derive 1-3 SHORT outcomes from the official KICD outcomes below. Break them into:
-   - Knowledge (identify, state, name, describe)
-   - Skills (draw, write, sing, read)
-   - Attitudes/Values (appreciate, respect, value)
+3. Specific Learning Outcomes: For each lesson, derive 1-3 SHORT outcomes from the official KICD outcomes below. Break them into three domains using the formula: [Action Verb] + [Subject Matter] + [Context/Standard].
+   - Knowledge (Cognitive): Use MEASURABLE action verbs ONLY. 
+     Foundational: Define, List, State, Name, Label, Recall, Identify, Describe.
+     Intermediate: Explain, Summarize, Paraphrase, Distinguish, Illustrate.
+     NEVER use vague verbs like "know", "understand", or "be aware of".
+   - Skills (Psychomotor): Use verbs requiring a TANGIBLE output.
+     Procedural: Execute, Perform, Construct, Demonstrate, Draw, Write, Sing, Read, Calculate.
+     Analytical: Measure, Sketch, Solve, Model, Trace, Cut, Colour, Paint.
+     NEVER use "learn to..." — always state the observable action directly.
+   - Attitudes/Values (Affective): Link to OBSERVABLE behaviour.
+     Use: Appreciate, Respect, Value, Practise, Uphold, Collaborate, Persist, Commit, Adhere, Advocate.
+     NEVER use "have a positive attitude" — instead say e.g. "Demonstrate respect for others' artwork".
    Format: "By the end of the lesson the learner should be able to:" then bullet points with "* " prefix.
 4. Key Inquiry Question: ${hasOfficialData ? 'Use the official question provided, or create a closely related child-friendly variant per lesson.' : 'ONE short child-friendly question.'}
 5. Learning Experiences: ${hasOfficialData ? 'Select 2-4 activities FROM the official suggested experiences below. Distribute them across lessons so all are covered by the end.' : '2-4 simple activities with "* " prefix.'}
