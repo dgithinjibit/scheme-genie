@@ -51,9 +51,13 @@ Deno.serve(async (req) => {
     // Build sub-strand context if available
     let subStrandContext = "";
     if (subStrands && Array.isArray(subStrands) && subStrands.length > 0) {
-      subStrandContext = `\n\nThe official KICD sub-strands for this strand are:\n${
-        (subStrands as SubStrandInfo[]).map(ss => `- ${ss.name} (${ss.lessons} lessons)`).join("\n")
-      }\n\nYou MUST generate exactly one row per sub-strand listed above. Each row's subStrand field must match the sub-strand name. The number of lessons indicates the depth/detail expected.`;
+      subStrandContext = `\n\nThe EXACT official KICD sub-strands for this strand are:\n${
+        (subStrands as SubStrandInfo[]).map(ss => `- "${ss.name}" (${ss.lessons} lessons)`).join("\n")
+      }\n\nCRITICAL RULES:
+1. Generate EXACTLY one row per sub-strand listed above — no more, no less.
+2. The "subStrand" field MUST use the EXACT sub-strand name from the list above, followed by the lesson count in parentheses, e.g. "2.1 Rounds (18 lessons)".
+3. The "strand" field MUST be exactly "${strand}" for every row.
+4. Content must match the KICD CBC curriculum design for ${grade} ${subject} as closely as possible.`;
     }
 
     const systemPrompt = isSw
