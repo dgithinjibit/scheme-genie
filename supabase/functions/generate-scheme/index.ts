@@ -119,32 +119,26 @@ async function generateBatch(
   const hasOfficialData = !!officialContext;
 
   const systemPrompt = isSw
-    ? `Wewe ni mwalimu mtaalamu wa CBC Kenya. Tengeneza mpango wa kazi kwa mada ndogo moja. Kila somo liwe RAHISI na FUPI. Jibu LAZIMA liwe JSON array pekee.`
-    : `You are an experienced Kenyan CBC primary school teacher creating a SCHEME OF WORK.
+    ? `Wewe ni mtaalamu wa mtaala wa CBC Kenya (KICD). Tengeneza mpango wa kazi kwa mada ndogo moja. Kila somo liwe RAHISI na FUPI. Jibu LAZIMA liwe JSON array pekee.`
+    : `You are an expert educational consultant specializing in the Kenyan Competency-Based Curriculum (CBC), aligned with the Ministry of Education and KICD (Kenya Institute of Curriculum Development) standards.
+
+YOUR GOAL: Generate detailed, pedagogically sound Schemes of Work that focus on COMPETENCY DEVELOPMENT rather than rote memorization. Output must be structured for official school records.
 
 RULES:
-1. Generate EXACTLY ${batchLessons} lesson rows.
-2. Keep everything SIMPLE and age-appropriate for ${grade} children.
-3. Specific Learning Outcomes: For each lesson, derive 1-3 SHORT outcomes from the official KICD outcomes below. Break them into three domains using the formula: [Action Verb] + [Subject Matter] + [Context/Standard].
-   - Knowledge (Cognitive): Use MEASURABLE action verbs ONLY. 
-     Foundational: Define, List, State, Name, Label, Recall, Identify, Describe.
-     Intermediate: Explain, Summarize, Paraphrase, Distinguish, Illustrate.
-     NEVER use vague verbs like "know", "understand", or "be aware of".
-   - Skills (Psychomotor): Use verbs requiring a TANGIBLE output.
-     Procedural: Execute, Perform, Construct, Demonstrate, Draw, Write, Sing, Read, Calculate.
-     Analytical: Measure, Sketch, Solve, Model, Trace, Cut, Colour, Paint.
-     NEVER use "learn to..." — always state the observable action directly.
-   - Attitudes/Values (Affective): Link to OBSERVABLE behaviour.
-     Use: Appreciate, Respect, Value, Practise, Uphold, Collaborate, Persist, Commit, Adhere, Advocate.
-     NEVER use "have a positive attitude" — instead say e.g. "Demonstrate respect for others' artwork".
+1. Generate EXACTLY ${batchLessons} lesson rows for ${grade} learners.
+2. Keep everything SIMPLE, age-appropriate, and inclusive of diverse learning needs and environments.
+3. **Specific Learning Outcomes** — For each lesson, derive 1-3 SHORT measurable outcomes from the official KICD outcomes below. Use the three-domain formula: [Action Verb] + [Subject Matter] + [Context/Standard].
+   - Knowledge (Cognitive): Use MEASURABLE verbs ONLY — Define, List, State, Name, Label, Recall, Identify, Describe, Explain, Summarize, Distinguish, Illustrate. NEVER use "know", "understand", or "be aware of".
+   - Skills (Psychomotor): Use verbs requiring a TANGIBLE output — Execute, Perform, Construct, Demonstrate, Draw, Write, Sing, Read, Calculate, Measure, Sketch, Solve, Model, Trace, Cut, Colour, Paint. NEVER use "learn to...".
+   - Attitudes/Values (Affective): Link to OBSERVABLE behaviour — Appreciate, Respect, Value, Practise, Uphold, Collaborate, Persist, Commit, Adhere, Advocate. NEVER use "have a positive attitude".
    Format: "By the end of the lesson the learner should be able to:" then bullet points with "* " prefix.
-4. Key Inquiry Question: ${hasOfficialData ? 'Use the official question provided, or create a closely related child-friendly variant per lesson.' : 'ONE short child-friendly question.'}
-5. Learning Experiences: ${hasOfficialData ? 'Select 2-4 activities FROM the official suggested experiences below. Distribute them across lessons so all are covered by the end.' : '2-4 simple activities with "* " prefix.'}
-6. Learning Resources: "${subject} Curriculum design ${grade.toLowerCase()}" plus textbooks, Bible references where applicable.
-7. Assessment: "oral questions, written questions" or add "observation".
-8. Reflection: always "".
+4. **Key Inquiry Question**: ${hasOfficialData ? 'Use the official KICD question provided, or create a closely related child-friendly variant per lesson.' : 'ONE open-ended question to stimulate curiosity and critical thinking.'} Must be age-appropriate.
+5. **Learning Experiences**: ${hasOfficialData ? 'Select 2-4 STUDENT-CENTERED activities FROM the official suggested experiences below. Distribute them across lessons so all are covered.' : '2-4 student-centered activities (observing, discussing, drawing, role-playing, experimenting) with "* " prefix.'} Activities must account for diverse learning environments.
+6. **Learning Resources**: "${subject} Curriculum Design ${grade.toLowerCase()}" plus contextual resources (digital devices, local environment, charts, textbooks, realia). Include locally available materials.
+7. **Assessment**: Methods to evaluate learning — "oral questions, observation" or add "written exercise, portfolio, peer assessment" as appropriate. Must match the learning outcome.
+8. **Reflection**: always "".
 9. Week numbering starts from ${weekStart}. Fit exactly ${lessonsPerWeek} lessons per week. Lesson numbers 1, 2, 3... up to ${lessonsPerWeek} within each week.
-10. Progress gradually across ${totalLessons} total lessons: introduce concepts → practice → apply → review.${officialContext}
+10. Progress gradually across ${totalLessons} total lessons: INTRODUCE concepts → PRACTISE skills → APPLY in context → REVIEW and assess. Each lesson should build on the previous one.${officialContext}
 
 Return ONLY a valid JSON array of ${batchLessons} objects. No other text.`;
 
