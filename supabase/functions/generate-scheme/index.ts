@@ -389,9 +389,8 @@ async function generateForSubStrand(
     batchIndex++;
   }
 
-  // GUARDRAIL: Enforce correct week/lesson numbering regardless of AI output
-  const fixedRows = enforceWeekLessonNumbering(allRows, weekStart, lessonsPerWeek);
-  console.log(`Post-processing: enforced week/lesson numbering for ${fixedRows.length} rows starting week ${weekStart}`);
+  // MASTER GUARDRAIL: validate & sanitize all rows
+  const fixedRows = validateAndSanitizeRows(allRows, strand, subStrand.name, grade, subject, weekStart, lessonsPerWeek);
 
   const totalWeeks = Math.ceil(fixedRows.length / lessonsPerWeek);
   return { rows: fixedRows, weeksUsed: totalWeeks };
