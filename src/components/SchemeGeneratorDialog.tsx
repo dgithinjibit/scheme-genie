@@ -30,10 +30,12 @@ const SchemeGeneratorDialog = () => {
   const [grade, setGrade] = useState("");
   const [subject, setSubject] = useState("");
   const [strand, setStrand] = useState("");
+  const [subStrand, setSubStrand] = useState("");
   const [context, setContext] = useState("");
   const [loading, setLoading] = useState(false);
   const [generatedRows, setGeneratedRows] = useState<SchemeRow[] | null>(null);
   const [availableStrands, setAvailableStrands] = useState<string[]>([]);
+  const [availableSubStrands, setAvailableSubStrands] = useState<string[]>([]);
   const [loadingStrands, setLoadingStrands] = useState(false);
 
   // TODO: Remove test filter — temporarily locked for testing
@@ -86,21 +88,39 @@ const SchemeGeneratorDialog = () => {
     setGrade("");
     setSubject("");
     setStrand("");
+    setSubStrand("");
     setContext("");
     setGeneratedRows(null);
     setLoading(false);
     setAvailableStrands([]);
+    setAvailableSubStrands([]);
   };
 
-  const handleGenerate = async () => {
+  // Populate sub-strands when strand is selected
+  useEffect(() => {
     if (!grade || !subject || !strand) {
-      toast({ title: "Missing fields", description: "Please select grade, subject, and strand.", variant: "destructive" });
+      setAvailableSubStrands([]);
+      return;
+    }
+    const subs = getSubStrandsForStrand(grade, subject, strand);
+    if (subs) {
+      setAvailableSubStrands(subs.map(s => s.name));
+    } else {
+      setAvailableSubStrands([]);
+    }
+  }, [grade, subject, strand]);
+
+  const handleGenerate = async () => {
+    if (!grade || !subject || !strand || !subStrand) {
+      toast({ title: "Missing fields", description: "Please select grade, subject, strand, and sub-strand.", variant: "destructive" });
       return;
     }
     setLoading(true);
     try {
-      // Get sub-strand details if available
-      const subStrands = getSubStrandsForStrand(grade, subject, strand);
+      // Get the specific sub-strand info
+      const allSubs = getSubStrandsForStrand(grade, subject, strand);
+      const selectedSub = allSubs?.find(s => s.name === subStrand);
+      const subStrands = selectedSub ? [selectedSub] : [];
       
       const { data, error } = await supabase.functions.invoke("generate-scheme", {
         body: { grade, subject, strand, context, subStrands },
@@ -110,7 +130,7 @@ const SchemeGeneratorDialog = () => {
       if (data?.error) throw new Error(data.error);
 
       setGeneratedRows(data.rows);
-      setStep(5);
+      setStep(6);
       const sourceMsg = data.source === "kicd_search"
         ? "Generated using live KICD curriculum data."
         : "Generated using AI curriculum knowledge.";
@@ -178,13 +198,13 @@ const SchemeGeneratorDialog = () => {
         <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="font-serif text-xl">
-              {step < 5 ? "Create Scheme of Work" : "Preview Scheme of Work"}
+              {step < 6 ? "Create Scheme of Work" : "Preview Scheme of Work"}
             </DialogTitle>
           </DialogHeader>
 
-          {step < 5 && (
+          {step < 6 && (
             <div className="flex gap-1 mb-4">
-              {[1, 2, 3, 4].map((s) => (
+              {[1, 2, 3, 4, 5].map((s) => (
                 <div
                   key={s}
                   className={`h-1.5 flex-1 rounded-full transition-colors ${s <= step ? "bg-primary" : "bg-muted"}`}
@@ -232,7 +252,7 @@ const SchemeGeneratorDialog = () => {
                     Fetching strands from KICD curriculum...
                   </div>
                 ) : (
-                  <Select value={strand} onValueChange={(v) => { setStrand(v); setStep(4); }}>
+                  <Select value={strand} onValueChange={(v) => { setStrand(v); setSubStrand(""); setStep(4); }}>
                     <SelectTrigger><SelectValue placeholder="Select Strand" /></SelectTrigger>
                     <SelectContent>
                       {["2.0 Performing and Displaying"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -245,10 +265,24 @@ const SchemeGeneratorDialog = () => {
 
             {step === 4 && (
               <div className="space-y-4 py-2">
+                <p className="text-sm text-muted-foreground">Select a sub-strand for {strand}.</p>
+                <Select value={subStrand} onValueChange={(v) => { setSubStrand(v); setStep(5); }}>
+                  <SelectTrigger><SelectValue placeholder="Select Sub-Strand" /></SelectTrigger>
+                  <SelectContent>
+                    {availableSubStrands.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Button variant="ghost" size="sm" onClick={() => { setStep(3); setStrand(""); }}>← Back</Button>
+              </div>
+            )}
+
+            {step === 5 && (
+              <div className="space-y-4 py-2">
                 <div className="rounded-lg bg-muted p-3 text-sm space-y-1">
                   <p><span className="font-medium">Grade:</span> {grade}</p>
                   <p><span className="font-medium">Subject:</span> {subject}</p>
                   <p><span className="font-medium">Strand:</span> {strand}</p>
+                  <p><span className="font-medium">Sub-Strand:</span> {subStrand}</p>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">
@@ -268,7 +302,7 @@ const SchemeGeneratorDialog = () => {
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => { setStep(3); setStrand(""); }}>← Back</Button>
+                  <Button variant="ghost" size="sm" onClick={() => { setStep(4); setSubStrand(""); }}>← Back</Button>
                   <Button onClick={handleGenerate} disabled={loading} className="ml-auto gap-2">
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                     {loading ? "Generating..." : "Generate Scheme"}
@@ -277,11 +311,11 @@ const SchemeGeneratorDialog = () => {
               </div>
             )}
 
-            {step === 5 && generatedRows && (
+            {step === 6 && generatedRows && (
               <div className="space-y-4 py-2">
                 <SchemePreview rows={generatedRows} subject={subject} grade={grade} strand={strand} />
                 <div className="flex flex-wrap gap-2 pt-2">
-                  <Button variant="outline" onClick={() => { setStep(4); setGeneratedRows(null); }} className="gap-2">
+                  <Button variant="outline" onClick={() => { setStep(5); setGeneratedRows(null); }} className="gap-2">
                     <FileText className="w-4 h-4" /> Regenerate
                   </Button>
                   <Button variant="secondary" onClick={handleSave} className="gap-2">
