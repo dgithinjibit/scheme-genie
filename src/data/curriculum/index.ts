@@ -6,6 +6,7 @@ export { grade1CreativeActivities, grade3CreativeActivities } from "./lower-prim
 export { grade1CRE } from "./lower-primary/cre";
 export { grade1HRE, grade2HRE, grade3HRE } from "./lower-primary/hre";
 export { grade1Kiswahili, grade2Kiswahili, grade3Kiswahili } from "./lower-primary/kiswahili";
+export { grade1Mathematics, grade2Mathematics, grade3Mathematics } from "./lower-primary/mathematics";
 export {
   grade1EnvironmentalActivities,
   grade2EnvironmentalActivities,
