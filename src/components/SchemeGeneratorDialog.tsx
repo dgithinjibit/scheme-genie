@@ -328,7 +328,7 @@ const SchemeGeneratorDialog = () => {
                 </div>
               </div>
             )}
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
     </>
