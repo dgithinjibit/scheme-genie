@@ -98,8 +98,11 @@ const SchemeGeneratorDialog = () => {
     }
     setLoading(true);
     try {
+      // Get sub-strand details if available
+      const subStrands = getSubStrandsForStrand(grade, subject, strand);
+      
       const { data, error } = await supabase.functions.invoke("generate-scheme", {
-        body: { grade, subject, strand, context },
+        body: { grade, subject, strand, context, subStrands },
       });
 
       if (error) throw error;
