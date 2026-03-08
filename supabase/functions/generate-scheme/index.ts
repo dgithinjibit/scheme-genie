@@ -69,49 +69,70 @@ CRITICAL RULES:
 7. The "subStrand" field MUST use the EXACT sub-strand name from the list above.`;
     }
 
+    const exampleRows = `
+EXAMPLE of how a Grade 3 scheme of work looks (Environmental Activities, Social Environment strand, "Our living environment" sub-strand with 10 lessons):
+
+Row 1: week=1, lesson=1, outcome="identify locally available materials used as beddings\n* draw items used as beddings\n* appreciate sleeping in a clean place", question="What are beddings?", experiences="* identify locally available materials used as beddings\n* draw items used as beddings\n* appreciate sleeping in a clean place", resources="Environmental Activities Curriculum design grade 3", assessment="oral questions, written questions"
+Row 2: week=1, lesson=2, outcome="identify locally available materials used as beddings", question="Name items that are used as beddings?", experiences="* discuss locally available materials used as beddings\n* use digital devices to search for items used as beddings", resources="Environmental Activities Curriculum design grade 3, Our lives today grade 3", assessment="oral questions, written questions"
+Row 3: week=1, lesson=3, outcome="state causes of bedwetting\n* use digital devices to search for hygiene practices to observe during bedwetting\n* appreciate sleeping in a clean place", question="What are causes of bedwetting?", experiences="* discuss causes of bedwetting\n* use digital devices to search for hygiene practices to observe during bedwetting", resources="Our lives today grade 3", assessment="oral questions, written questions"
+
+NOTICE THE PATTERN:
+- Each lesson covers a SMALL, simple, age-appropriate topic for young children
+- Outcomes are SHORT (1-3 bullet points, each one line)
+- Learning experiences are SIMPLE practical activities (2-4 bullets)
+- Questions are SHORT and child-friendly
+- The SAME sub-strand continues across many lessons, each building slightly
+- Assessment is always simple: "oral questions, written questions" or "observation"
+- Resources reference the curriculum design document and relevant textbooks`;
+
     const systemPrompt = isSw
       ? `Wewe ni mwalimu mtaalamu wa CBC Kenya. Tengeneza mpango wa kazi (scheme of work) kwa muundo wa masomo ya kila somo moja moja.
 
+MUHIMU: Hii ni kwa watoto wadogo. Kila somo liwe RAHISI na FUPI. Matokeo yawe 1-3 tu, shughuli 2-4, swali moja fupi.
+
 Jibu LAZIMA liwe JSON array ya objects zenye fields hizi:
 - week (number): Nambari ya wiki
-- lesson (number): Nambari ya somo ndani ya wiki
+- lesson (number): Nambari ya somo ndani ya wiki (1, 2, au 3)
 - strand (string): Mada kuu
 - subStrand (string): Mada ndogo
-- specificLearningOutcome (string): Matokeo mahususi ya somo hilo moja — "Mwishoni mwa somo, mwanafunzi aweze..."
-- keyInquiryQuestion (string): Swali moja la uchunguzi kwa somo hilo
-- learningExperiences (string): Shughuli za ujifunzaji — "Mwanafunzi anaongozwa..." tumia "• " kwa kila shughuli
-- learningResources (string): Rasilimali za kujifunza
-- assessmentMethods (string): Mbinu za tathmini k.m. maswali ya mdomo, maswali ya maandishi
+- specificLearningOutcome (string): "Mwishoni mwa somo, mwanafunzi aweze:" kisha matokeo 1-3 rahisi, kila moja mstari wake ukianza na "* "
+- keyInquiryQuestion (string): Swali MOJA fupi la uchunguzi
+- learningExperiences (string): Shughuli 2-4 rahisi, kila moja ikianza na "* "
+- learningResources (string): Rasilimali
+- assessmentMethods (string): "maswali ya mdomo, maswali ya maandishi"
 - reflection (string): Acha tupu ""
 
 Jibu LAZIMA liwe JSON array pekee.`
-      : `You are an experienced Kenyan CBC teacher creating a SCHEME OF WORK — a weekly lesson-by-lesson teaching plan.
+      : `You are an experienced Kenyan CBC primary school teacher creating a SCHEME OF WORK.
 
-IMPORTANT: A scheme of work is NOT the curriculum design. The curriculum design gives aggregated outcomes per sub-strand. YOUR job is to BREAK THOSE DOWN into individual lesson plans, distributing content progressively across lessons.
+A scheme of work breaks down the curriculum design into INDIVIDUAL LESSON PLANS — one row per lesson.
 
-For each INDIVIDUAL LESSON row, generate:
-- week (number): Week number (starting from 1)
-- lesson (number): Lesson number within that week (1, 2, or 3)
-- strand (string): The strand name
-- subStrand (string): The sub-strand name
-- specificLearningOutcome (string): What the learner should achieve in THIS SINGLE LESSON. Start with "By the end of the lesson the learner should be able to:" then list 2-3 specific, focused outcomes for that one lesson only.
-- keyInquiryQuestion (string): ONE thought-provoking question for this specific lesson
-- learningExperiences (string): 3-5 practical activities for THIS lesson. Start with "The learner is guided to:" then use bullet points. Include hands-on activities, discussions, digital device usage where appropriate.
-- learningResources (string): Specific resources needed (e.g., "Environmental Activities Curriculum design grade 3, Our lives today grade 3, art supplies, digital devices")
-- assessmentMethods (string): How to assess this lesson (e.g., "oral questions, written questions, observation")
-- reflection (string): Leave as empty string ""
+${exampleRows}
 
-Your response MUST be ONLY a valid JSON array of objects. No other text.`;
+RULES FOR GENERATING:
+1. Generate EXACTLY the number of lesson rows specified for each sub-strand (if sub-strand has 18 lessons, generate 18 rows).
+2. Each lesson row must be SIMPLE and age-appropriate for ${grade} children.
+3. Outcomes: Start with "By the end of the lesson the learner should be able to:" then 1-3 SHORT bullet points using "* " prefix. Keep each point to ONE simple sentence.
+4. Key Inquiry Question: ONE short, child-friendly question.
+5. Learning Experiences: 2-4 simple activities using "* " prefix. Include "use digital devices" occasionally.
+6. Learning Resources: Reference "${subject} Curriculum design ${grade.toLowerCase()}" plus relevant textbooks.
+7. Assessment: Keep it simple — "oral questions, written questions" or add "observation" where hands-on.
+8. Reflection: Always empty string "".
+9. Week numbering: Start from 1. Fit 2-3 lessons per week. Lesson numbers reset each week (1, 2, 3).
+10. Progress through the sub-strand gradually — introduce, practice, apply, review.
 
-    const userPrompt = `Generate a CBC scheme of work (lesson-by-lesson) for:
+Your response MUST be ONLY a valid JSON array. No other text.`;
+
+    const userPrompt = `Generate a CBC scheme of work for:
 - Grade: ${grade}
 - Subject: ${subject}  
 - Strand: ${strand}
 ${subStrandContext}
 ${context ? `\nLearning resources available: ${context}` : ""}
 
-IMPORTANT: Generate one row per LESSON, not per sub-strand. Each sub-strand with N lessons needs N separate rows.
-Distribute outcomes progressively across lessons. Early lessons = introduce/identify. Middle = practice/discuss. Later = apply/create/advocate.
+CRITICAL: You MUST generate EXACTLY the total number of lesson rows matching the lesson counts above. Each sub-strand with N lessons = N separate rows. Do NOT skip or summarize. Do NOT combine multiple lessons into one row.
+
+For ${grade} students, keep everything SIMPLE — short outcomes, simple activities, child-friendly questions.
 
 Return ONLY a valid JSON array.`;
 
