@@ -1,6 +1,12 @@
 export interface SubStrandInfo {
   name: string;
   lessons: number;
+  /** Official KICD learning outcomes for this sub-strand */
+  learningOutcomes?: string[];
+  /** Official KICD suggested learning experiences */
+  suggestedExperiences?: string[];
+  /** Official KICD key inquiry question */
+  keyInquiryQuestion?: string;
 }
 
 export interface StrandInfo {
