@@ -19,6 +19,7 @@ export {
 import type { StrandInfo } from "./types";
 import { grade1CreativeActivities, grade3CreativeActivities } from "./lower-primary/creative-activities";
 import { grade1CRE } from "./lower-primary/cre";
+import { grade1HRE, grade2HRE, grade3HRE } from "./lower-primary/hre";
 import {
   grade1EnvironmentalActivities,
   grade2EnvironmentalActivities,
