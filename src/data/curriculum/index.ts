@@ -142,7 +142,7 @@ const upperPrimaryLessons: Record<string, number> = {
   "Science & Technology": 4,
   "Social Studies": 3,
   "Agriculture": 4,
-  "Creative Arts": 3,
+  "Creative Arts": 6,
   "CRE": 3, "HRE": 3, "IRE": 3,
   "Arabic": 2, "French": 2, "German": 2, "Mandarin": 2,
   "Indigenous Language": 2,
