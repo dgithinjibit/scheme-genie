@@ -6,7 +6,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Sites to scrape and their index/sitemap pages
 const SOURCES = [
   {
     site: "teacher.co.ke",
@@ -16,16 +15,23 @@ const SOURCES = [
       "https://teacher.co.ke/download-grade-7-9-junior-secondary-school-materials/",
       "https://teacher.co.ke/download-free-pre-primary-1-2-materials-pp1-pp2/",
     ],
+    useMap: true,
+    mapSearch: "scheme of work CBC grade",
+    waitFor: 0,
   },
   {
     site: "schemesofwork.com",
     indexUrls: [
       "https://schemesofwork.com/",
+      "https://schemesofwork.com/schemes-of-work/",
+      "https://schemesofwork.com/cbc-schemes-of-work/",
     ],
+    useMap: true,
+    mapSearch: "scheme of work grade",
+    waitFor: 5000, // JS-rendered site needs wait time
   },
 ];
 
-// Grade/subject patterns to extract from titles
 const GRADE_PATTERNS = [
   /grade\s*(\d+)/i,
   /pp\s*(\d)/i,
@@ -41,6 +47,14 @@ const SUBJECT_KEYWORDS = [
   "Creative Arts", "Language Activities", "Mathematical Activities",
   "HRE", "Hindu Religious Education", "Literacy", "Hygiene", "Nutrition",
 ];
+
+const MAX_PAGES_PER_RUN = 15; // Keep well under 150s timeout
+const START_TIME = Date.now();
+const TIMEOUT_BUFFER_MS = 120_000; // Stop after 2 min to allow response
+
+function isTimeBudgetExhausted(): boolean {
+  return Date.now() - START_TIME > TIMEOUT_BUFFER_MS;
+}
 
 function extractGrade(text: string): string | null {
   for (const pattern of GRADE_PATTERNS) {
@@ -68,6 +82,145 @@ function extractTerm(text: string): string | null {
   return match ? `Term ${match[1]}` : null;
 }
 
+async function discoverLinks(
+  source: typeof SOURCES[number],
+  apiKey: string
+): Promise<string[]> {
+  const allLinks: Set<string> = new Set();
+
+  // Scrape index pages for links
+  for (const indexUrl of source.indexUrls) {
+    if (isTimeBudgetExhausted()) break;
+    console.log(`Scraping index: ${indexUrl}`);
+    try {
+      const res = await fetch("https://api.firecrawl.dev/v1/scrape", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url: indexUrl,
+          formats: ["links", "markdown"],
+          onlyMainContent: true,
+          waitFor: source.waitFor || 0,
+        }),
+      });
+      if (!res.ok) { console.error(`Firecrawl ${res.status} for ${indexUrl}`); continue; }
+      const data = await res.json();
+      const links: string[] = data.data?.links || data.links || [];
+      for (const link of links) {
+        const l = link.toLowerCase();
+        if (
+          (l.includes("scheme") || l.includes("curriculum") || l.includes("grade") || l.includes("cbc")) &&
+          !l.includes("login") && !l.includes("register") && !l.includes("cart")
+        ) {
+          allLinks.add(link);
+        }
+      }
+    } catch (e) {
+      console.error(`Error scraping ${indexUrl}:`, e);
+    }
+  }
+
+  // Use map endpoint for sitemap discovery
+  if (source.useMap && !isTimeBudgetExhausted()) {
+    try {
+      console.log(`Mapping ${source.site}...`);
+      const res = await fetch("https://api.firecrawl.dev/v1/map", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url: `https://${source.site}`,
+          search: source.mapSearch,
+          limit: 200,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const links: string[] = data.links || [];
+        for (const link of links) {
+          const l = link.toLowerCase();
+          if (l.includes("scheme") || l.includes("grade") || l.includes("cbc")) {
+            allLinks.add(link);
+          }
+        }
+      }
+    } catch (e) {
+      console.error(`Map error for ${source.site}:`, e);
+    }
+  }
+
+  return [...allLinks];
+}
+
+async function processLink(
+  link: string,
+  source: typeof SOURCES[number],
+  apiKey: string,
+  supabase: any
+): Promise<boolean> {
+  // Check if already scraped
+  const { data: existing } = await supabase
+    .from("scheme_references")
+    .select("id")
+    .eq("url", link)
+    .maybeSingle();
+  if (existing) return false;
+
+  // Scrape page with waitFor for JS sites
+  const res = await fetch("https://api.firecrawl.dev/v1/scrape", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      url: link,
+      formats: ["markdown"],
+      onlyMainContent: true,
+      waitFor: source.waitFor || 0,
+    }),
+  });
+  if (!res.ok) return false;
+
+  const pageData = await res.json();
+  const markdown = pageData.data?.markdown || pageData.markdown || "";
+  const metadata = pageData.data?.metadata || pageData.metadata || {};
+  const title = metadata.title || "";
+  const description = metadata.description || "";
+
+  const fullText = `${title} ${description} ${markdown.slice(0, 500)}`;
+  const grade = extractGrade(fullText);
+  const subject = extractSubject(fullText);
+  const term = extractTerm(fullText);
+
+  if (!grade && !subject && !title.toLowerCase().includes("scheme")) return false;
+
+  // Upsert for idempotency
+  const { error } = await supabase
+    .from("scheme_references")
+    .upsert(
+      {
+        source_site: source.site,
+        url: link,
+        title: title.slice(0, 500),
+        grade,
+        subject,
+        term,
+        description: description.slice(0, 1000),
+        content_snippet: markdown.slice(0, 2000),
+      },
+      { onConflict: "url" }
+    );
+
+  if (error) { console.error(`Upsert error for ${link}:`, error); return false; }
+  return true;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -82,157 +235,39 @@ Deno.serve(async (req) => {
       );
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
 
-    const results: { site: string; found: number; inserted: number }[] = [];
+    const results: { site: string; found: number; inserted: number; stopped_early: boolean }[] = [];
 
     for (const source of SOURCES) {
-      let allLinks: string[] = [];
-
-      // Step A: Scrape each index page for links
-      for (const indexUrl of source.indexUrls) {
-        console.log(`Scraping index: ${indexUrl}`);
-        try {
-          const scrapeRes = await fetch("https://api.firecrawl.dev/v1/scrape", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              url: indexUrl,
-              formats: ["links", "markdown"],
-              onlyMainContent: true,
-            }),
-          });
-
-          if (!scrapeRes.ok) {
-            console.error(`Firecrawl error for ${indexUrl}: ${scrapeRes.status}`);
-            continue;
-          }
-
-          const scrapeData = await scrapeRes.json();
-          const links = scrapeData.data?.links || scrapeData.links || [];
-          // Filter for scheme-related links
-          const schemeLinks = links.filter((link: string) => {
-            const l = link.toLowerCase();
-            return (
-              (l.includes("scheme") || l.includes("curriculum") || l.includes("grade") || l.includes("cbc")) &&
-              !l.includes("login") && !l.includes("register") && !l.includes("cart")
-            );
-          });
-          allLinks.push(...schemeLinks);
-        } catch (e) {
-          console.error(`Error scraping ${indexUrl}:`, e);
-        }
+      if (isTimeBudgetExhausted()) {
+        results.push({ site: source.site, found: 0, inserted: 0, stopped_early: true });
+        continue;
       }
 
-      // Also try Firecrawl map for sitemaps
-      if (source.site === "teacher.co.ke") {
-        try {
-          console.log(`Mapping ${source.site} for scheme URLs...`);
-          const mapRes = await fetch("https://api.firecrawl.dev/v1/map", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              url: `https://${source.site}`,
-              search: "scheme of work CBC grade",
-              limit: 200,
-            }),
-          });
-          if (mapRes.ok) {
-            const mapData = await mapRes.json();
-            const mapLinks = mapData.links || [];
-            allLinks.push(...mapLinks.filter((l: string) =>
-              l.toLowerCase().includes("scheme") || l.toLowerCase().includes("grade")
-            ));
-          }
-        } catch (e) {
-          console.error(`Map error for ${source.site}:`, e);
-        }
-      }
+      const links = await discoverLinks(source, FIRECRAWL_API_KEY);
+      console.log(`Found ${links.length} links from ${source.site}`);
 
-      // Deduplicate
-      allLinks = [...new Set(allLinks)];
-      console.log(`Found ${allLinks.length} scheme-related links from ${source.site}`);
-
-      // Step B: Visit each link to grab metadata
       let inserted = 0;
-      for (const link of allLinks.slice(0, 50)) { // Limit to 50 per site per run
+      let stoppedEarly = false;
+      for (const link of links.slice(0, MAX_PAGES_PER_RUN)) {
+        if (isTimeBudgetExhausted()) { stoppedEarly = true; break; }
         try {
-          // Check if already scraped
-          const { data: existing } = await supabase
-            .from("scheme_references")
-            .select("id")
-            .eq("url", link)
-            .maybeSingle();
-
-          if (existing) continue;
-
-          // Scrape the page for metadata
-          const pageRes = await fetch("https://api.firecrawl.dev/v1/scrape", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              url: link,
-              formats: ["markdown"],
-              onlyMainContent: true,
-            }),
-          });
-
-          if (!pageRes.ok) continue;
-
-          const pageData = await pageRes.json();
-          const markdown = pageData.data?.markdown || pageData.markdown || "";
-          const metadata = pageData.data?.metadata || pageData.metadata || {};
-          const title = metadata.title || "";
-          const description = metadata.description || "";
-
-          // Extract structured fields from title/content
-          const fullText = `${title} ${description} ${markdown.slice(0, 500)}`;
-          const grade = extractGrade(fullText);
-          const subject = extractSubject(fullText);
-          const term = extractTerm(fullText);
-
-          // Only store if it seems scheme-related
-          if (!grade && !subject && !title.toLowerCase().includes("scheme")) continue;
-
-          const { error: insertError } = await supabase
-            .from("scheme_references")
-            .insert({
-              source_site: source.site,
-              url: link,
-              title: title.slice(0, 500),
-              grade,
-              subject,
-              term,
-              description: description.slice(0, 1000),
-              content_snippet: markdown.slice(0, 2000),
-            });
-
-          if (!insertError) inserted++;
-          else console.error(`Insert error for ${link}:`, insertError);
-
-          // Small delay to avoid rate limits
-          await new Promise(r => setTimeout(r, 500));
+          const ok = await processLink(link, source, FIRECRAWL_API_KEY, supabase);
+          if (ok) inserted++;
+          await new Promise((r) => setTimeout(r, 300));
         } catch (e) {
           console.error(`Error processing ${link}:`, e);
         }
       }
 
-      results.push({ site: source.site, found: allLinks.length, inserted });
+      results.push({ site: source.site, found: links.length, inserted, stopped_early: stoppedEarly });
     }
 
     console.log("Scraping complete:", results);
-
     return new Response(
       JSON.stringify({ success: true, results }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
