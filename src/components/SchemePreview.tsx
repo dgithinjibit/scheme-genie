@@ -25,7 +25,7 @@ const SchemePreview = ({ rows, subject, grade, strand }: SchemePreviewProps) => 
         </p>
       </div>
 
-      <div className="w-full rounded-lg border border-border overflow-x-auto">
+      <ScrollArea className="w-full rounded-lg border border-border">
         <div className="min-w-[1400px]">
           <table className="w-full text-sm">
             <thead>
@@ -58,7 +58,8 @@ const SchemePreview = ({ rows, subject, grade, strand }: SchemePreviewProps) => 
             </tbody>
           </table>
         </div>
-      </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
     </div>
   );
 };
