@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { grades, getSubjectsForGrade, type SchemeRow } from "@/data/curriculum";
+import { grades, getSubjectsForGrade, getHardcodedStrands, getSubStrandsForStrand, type SchemeRow } from "@/data/curriculum";
 import SchemePreview from "./SchemePreview";
 import { FileText, Download, Save, Loader2, Sparkles } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -48,6 +48,14 @@ const SchemeGeneratorDialog = () => {
     const fetchStrands = async () => {
       setLoadingStrands(true);
       try {
+        // Check hardcoded data first
+        const hardcoded = getHardcodedStrands(grade, subject);
+        if (hardcoded) {
+          setAvailableStrands(hardcoded.map(s => s.name));
+          setLoadingStrands(false);
+          return;
+        }
+
         const { data, error } = await supabase.functions.invoke("fetch-strands", {
           body: { grade, subject },
         });
@@ -90,8 +98,11 @@ const SchemeGeneratorDialog = () => {
     }
     setLoading(true);
     try {
+      // Get sub-strand details if available
+      const subStrands = getSubStrandsForStrand(grade, subject, strand);
+      
       const { data, error } = await supabase.functions.invoke("generate-scheme", {
-        body: { grade, subject, strand, context },
+        body: { grade, subject, strand, context, subStrands },
       });
 
       if (error) throw error;
