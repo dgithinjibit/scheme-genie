@@ -203,8 +203,8 @@ async function generateForSubStrand(
   while (remaining > 0) {
     const batchSize = Math.min(remaining, MAX_LESSONS_PER_BATCH);
     const rows = await generateBatch(
-      LOVABLE_API_KEY, grade, subject, strand, ss,
-      batchSize, context || "", isSw, currentWeek, lessonsPerWeek, batchIndex
+      LOVABLE_API_KEY, grade, subject, strand, subStrand,
+      batchSize, context, isSw, currentWeek, lessonsPerWeek, batchIndex
     );
     allRows.push(...rows);
 
