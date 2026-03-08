@@ -52,14 +52,22 @@ const SchemeGeneratorDialog = () => {
     }
     setLoading(true);
     try {
-      // Simulate AI generation delay
-      await new Promise((r) => setTimeout(r, 2000));
-      const rows = generateSampleScheme(grade, subject, strand);
-      setGeneratedRows(rows);
+      const { data, error } = await supabase.functions.invoke("generate-scheme", {
+        body: { grade, subject, strand, context },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setGeneratedRows(data.rows);
       setStep(5);
-      toast({ title: "Scheme Generated!", description: "Your CBC-compliant scheme of work is ready." });
-    } catch {
-      toast({ title: "Generation Failed", description: "An error occurred. Please try again.", variant: "destructive" });
+      const sourceMsg = data.source === "kicd_search"
+        ? "Generated using live KICD curriculum data."
+        : "Generated using AI curriculum knowledge.";
+      toast({ title: "Scheme Generated!", description: sourceMsg });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An error occurred. Please try again.";
+      toast({ title: "Generation Failed", description: message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
