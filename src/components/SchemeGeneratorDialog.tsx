@@ -214,7 +214,7 @@ const SchemeGeneratorDialog = () => {
             </div>
           )}
 
-          <ScrollArea className="max-h-[70vh] pr-2">
+          <div className="max-h-[70vh] overflow-y-auto pr-2">
             {step === 1 && (
               <div className="space-y-4 py-2">
                 <p className="text-sm text-muted-foreground">Select the grade level for this scheme.</p>
@@ -328,7 +328,7 @@ const SchemeGeneratorDialog = () => {
                 </div>
               </div>
             )}
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
     </>
