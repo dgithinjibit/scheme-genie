@@ -60,6 +60,7 @@ const hardcodedStrands: Record<CurriculumKey, StrandInfo[]> = {
   "Grade 1|Mathematics": grade1Mathematics,
   "Grade 2|Mathematics": grade2Mathematics,
   "Grade 3|Mathematics": grade3Mathematics,
+  "Grade 6|Agriculture": grade6Agriculture,
 };
 
 /**
