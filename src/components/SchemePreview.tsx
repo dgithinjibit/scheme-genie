@@ -1,5 +1,4 @@
 import { SchemeRow, columnHeaders, kiswahiliSubjects } from "@/data/curriculum";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface SchemePreviewProps {
   rows: SchemeRow[];
@@ -26,8 +25,8 @@ const SchemePreview = ({ rows, subject, grade, strand }: SchemePreviewProps) => 
         </p>
       </div>
 
-      <ScrollArea className="w-full rounded-lg border border-border">
-        <div className="min-w-[1100px]">
+      <div className="w-full rounded-lg border border-border overflow-x-auto">
+        <div className="min-w-[1200px]">
           <table className="w-full text-sm">
             <thead>
               <tr>
@@ -44,21 +43,20 @@ const SchemePreview = ({ rows, subject, grade, strand }: SchemePreviewProps) => 
             <tbody>
               {rows.map((row, i) => (
                 <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-muted/50"}>
-                  <td className="px-3 py-2 font-medium text-xs align-top border-b border-border">{row.strand}</td>
-                  <td className="px-3 py-2 text-xs align-top border-b border-border">{row.subStrand}</td>
-                  <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line">{row.learningOutcomes}</td>
-                  <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line">{row.learningExperiences}</td>
-                  <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line">{row.inquiryQuestions}</td>
-                  <td className="px-3 py-2 text-xs align-top border-b border-border">{row.coreCompetencies}</td>
-                  <td className="px-3 py-2 text-xs align-top border-b border-border">{row.values}</td>
-                  <td className="px-3 py-2 text-xs align-top border-b border-border">{row.pcis}</td>
+                  <td className="px-3 py-2 font-medium text-xs align-top border-b border-border min-w-[120px]">{row.strand}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[150px]">{row.subStrand}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line min-w-[200px]">{row.learningOutcomes}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line min-w-[200px]">{row.learningExperiences}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line min-w-[160px]">{row.inquiryQuestions}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[130px]">{row.coreCompetencies}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[100px]">{row.values}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[120px]">{row.pcis}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+      </div>
     </div>
   );
 };
