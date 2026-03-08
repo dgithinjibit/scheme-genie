@@ -20,6 +20,9 @@ interface SchemeRow {
 interface SubStrandInfo {
   name: string;
   lessons: number;
+  learningOutcomes?: string[];
+  suggestedExperiences?: string[];
+  keyInquiryQuestion?: string;
 }
 
 const kiswahiliSubjects = ["Kiswahili"];
