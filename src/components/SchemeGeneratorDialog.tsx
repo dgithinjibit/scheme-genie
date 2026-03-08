@@ -111,14 +111,16 @@ const SchemeGeneratorDialog = () => {
   }, [grade, subject, strand]);
 
   const handleGenerate = async () => {
-    if (!grade || !subject || !strand) {
-      toast({ title: "Missing fields", description: "Please select grade, subject, and strand.", variant: "destructive" });
+    if (!grade || !subject || !strand || !subStrand) {
+      toast({ title: "Missing fields", description: "Please select grade, subject, strand, and sub-strand.", variant: "destructive" });
       return;
     }
     setLoading(true);
     try {
-      // Get sub-strand details if available
-      const subStrands = getSubStrandsForStrand(grade, subject, strand);
+      // Get the specific sub-strand info
+      const allSubs = getSubStrandsForStrand(grade, subject, strand);
+      const selectedSub = allSubs?.find(s => s.name === subStrand);
+      const subStrands = selectedSub ? [selectedSub] : [];
       
       const { data, error } = await supabase.functions.invoke("generate-scheme", {
         body: { grade, subject, strand, context, subStrands },
@@ -128,7 +130,7 @@ const SchemeGeneratorDialog = () => {
       if (data?.error) throw new Error(data.error);
 
       setGeneratedRows(data.rows);
-      setStep(5);
+      setStep(6);
       const sourceMsg = data.source === "kicd_search"
         ? "Generated using live KICD curriculum data."
         : "Generated using AI curriculum knowledge.";
