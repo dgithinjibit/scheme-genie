@@ -26,7 +26,7 @@ const SchemePreview = ({ rows, subject, grade, strand }: SchemePreviewProps) => 
       </div>
 
       <div className="w-full rounded-lg border border-border overflow-x-auto">
-        <div className="min-w-[1200px]">
+        <div className="min-w-[1400px]">
           <table className="w-full text-sm">
             <thead>
               <tr>
@@ -43,14 +43,16 @@ const SchemePreview = ({ rows, subject, grade, strand }: SchemePreviewProps) => 
             <tbody>
               {rows.map((row, i) => (
                 <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-muted/50"}>
-                  <td className="px-3 py-2 font-medium text-xs align-top border-b border-border min-w-[120px]">{row.strand}</td>
-                  <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[150px]">{row.subStrand}</td>
-                  <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line min-w-[200px]">{row.learningOutcomes}</td>
-                  <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line min-w-[200px]">{row.learningExperiences}</td>
-                  <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line min-w-[160px]">{row.inquiryQuestions}</td>
-                  <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[130px]">{row.coreCompetencies}</td>
-                  <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[100px]">{row.values}</td>
-                  <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[120px]">{row.pcis}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[40px] font-medium">{row.week}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[40px]">{row.lesson}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[120px] font-medium">{row.strand}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[130px]">{row.subStrand}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line min-w-[220px]">{row.specificLearningOutcome}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line min-w-[150px]">{row.keyInquiryQuestion}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line min-w-[220px]">{row.learningExperiences}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[150px]">{row.learningResources}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[120px]">{row.assessmentMethods}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[60px]">{row.reflection}</td>
                 </tr>
               ))}
             </tbody>
