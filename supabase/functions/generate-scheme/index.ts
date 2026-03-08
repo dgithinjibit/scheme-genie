@@ -380,11 +380,30 @@ async function generateForSubStrand(
 
   while (remaining > 0) {
     const batchSize = Math.min(remaining, MAX_LESSONS_PER_BATCH);
-    const rows = await generateBatch(
-      LOVABLE_API_KEY, grade, subject, strand, subStrand,
-      batchSize, context, isSw, currentWeek, lessonsPerWeek, batchIndex
-    );
-    allRows.push(...rows);
+    let rows: SchemeRow[] | null = null;
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while (!rows && attempts < maxAttempts) {
+      attempts++;
+      try {
+        rows = await generateBatch(
+          LOVABLE_API_KEY, grade, subject, strand, subStrand,
+          batchSize, context, isSw, currentWeek, lessonsPerWeek, batchIndex
+        );
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Unknown";
+        console.warn(`Batch ${batchIndex} attempt ${attempts}/${maxAttempts} failed: ${msg}`);
+        if (msg === "RATE_LIMIT") throw e; // Don't retry rate limits
+        if (attempts >= maxAttempts) throw e;
+        // Brief pause before retry
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+
+    if (rows) {
+      allRows.push(...rows);
+    }
     remaining -= batchSize;
     batchIndex++;
   }
