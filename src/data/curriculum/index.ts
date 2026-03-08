@@ -43,6 +43,7 @@ type CurriculumKey = string;
 
 const hardcodedStrands: Record<CurriculumKey, StrandInfo[]> = {
   "Grade 1|Creative Activities": grade1CreativeActivities,
+  "Grade 2|Creative Activities": grade2CreativeActivities,
   "Grade 3|Creative Activities": grade3CreativeActivities,
   "Grade 1|CRE": grade1CRE,
   "Grade 1|HRE": grade1HRE,
