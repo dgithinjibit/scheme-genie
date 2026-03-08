@@ -1,3 +1,4 @@
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { SchemeRow, columnHeaders, kiswahiliSubjects } from "@/data/curriculum";
 
 interface SchemePreviewProps {
