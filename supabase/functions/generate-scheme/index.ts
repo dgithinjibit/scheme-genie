@@ -80,16 +80,15 @@ function extractJsonArray(raw: string): SchemeRow[] {
   throw new Error("No parseable JSON found in response");
 }
 
-/**
- * GUARDRAIL: Fix week/lesson numbering after AI generation.
- * The AI sometimes ignores the "reset lesson numbers each week" instruction,
- * producing lesson 17 instead of Week 4 Lesson 2. This function enforces
- * correct sequential numbering programmatically.
- */
+// ============================================================
+// GUARDRAILS: Post-processing validation & sanitization
+// These ensure production-quality output regardless of AI quirks
+// ============================================================
+
+/** GUARDRAIL 1: Fix week/lesson numbering deterministically. */
 function enforceWeekLessonNumbering(rows: SchemeRow[], weekStart: number, lessonsPerWeek: number): SchemeRow[] {
   let currentWeek = weekStart;
   let currentLesson = 1;
-
   return rows.map((row) => {
     const fixed = { ...row, week: currentWeek, lesson: currentLesson };
     currentLesson++;
@@ -99,6 +98,153 @@ function enforceWeekLessonNumbering(rows: SchemeRow[], weekStart: number, lesson
     }
     return fixed;
   });
+}
+
+/** GUARDRAIL 2: Override strand/subStrand with exact requested values. */
+function enforceStrandNames(rows: SchemeRow[], strand: string, subStrandName: string): SchemeRow[] {
+  return rows.map((row) => ({ ...row, strand, subStrand: subStrandName }));
+}
+
+/** GUARDRAIL 3: Validate & fix Specific Learning Outcomes (must have a, b, c). */
+function validateAndFixSLO(slo: string): string {
+  if (!slo || slo.trim().length === 0) {
+    return "By the end of the lesson, the learner should be able to:\na) [Knowledge outcome]\nb) [Skills outcome]\nc) [Attitudes/Values outcome]";
+  }
+  const hasA = /a\)/.test(slo);
+  const hasB = /b\)/.test(slo);
+  const hasC = /c\)/.test(slo);
+
+  let fixed = slo;
+  if (hasA && hasB && hasC) {
+    if (!fixed.toLowerCase().includes("by the end of the lesson")) {
+      fixed = "By the end of the lesson, the learner should be able to:\n" + fixed.trim();
+    }
+    return fixed;
+  }
+  const lines = slo.split(/\n|(?=\d\.\s)/).map(l => l.trim()).filter(Boolean);
+  const content = lines.filter(l => !l.toLowerCase().includes("by the end"));
+  if (content.length >= 3) {
+    return `By the end of the lesson, the learner should be able to:\na) ${content[0].replace(/^[a-c]\)\s*|^\d+[\.\)]\s*/i, "")}\nb) ${content[1].replace(/^[a-c]\)\s*|^\d+[\.\)]\s*/i, "")}\nc) ${content[2].replace(/^[a-c]\)\s*|^\d+[\.\)]\s*/i, "")}`;
+  }
+  console.warn("SLO format could not be auto-fixed:", slo.substring(0, 80));
+  return slo;
+}
+
+/** GUARDRAIL 4: Validate Learning Experiences (must start with "Learner is guided to:" + a,b,c). */
+function validateAndFixExperiences(exp: string): string {
+  if (!exp || exp.trim().length === 0) {
+    return "Learner is guided to:\na) [Activity 1]\nb) [Activity 2]\nc) [Activity 3]";
+  }
+  const hasGuided = /learner is guided to/i.test(exp);
+  const hasA = /a\)/.test(exp);
+  const hasB = /b\)/.test(exp);
+  const hasC = /c\)/.test(exp);
+
+  if (hasGuided && hasA && hasB && hasC) return exp;
+
+  let fixed = exp;
+  if (!hasGuided) fixed = "Learner is guided to:\n" + fixed;
+  if (!hasA || !hasB || !hasC) {
+    const lines = exp.split(/\n|(?<=\.)\s+/).map(l => l.trim()).filter(l => l && !l.toLowerCase().includes("learner is guided"));
+    if (lines.length >= 3) {
+      return `Learner is guided to:\na) ${lines[0].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}\nb) ${lines[1].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}\nc) ${lines[2].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}`;
+    }
+  }
+  return fixed;
+}
+
+/** GUARDRAIL 5: Fill in empty required fields with sensible defaults. */
+function ensureNoEmptyFields(row: SchemeRow, grade: string, subject: string): SchemeRow {
+  return {
+    ...row,
+    strand: row.strand || subject,
+    subStrand: row.subStrand || "",
+    specificLearningOutcome: row.specificLearningOutcome || "",
+    keyInquiryQuestion: row.keyInquiryQuestion || "What have we learned today?",
+    learningExperiences: row.learningExperiences || "",
+    learningResources: row.learningResources || `${subject} Curriculum Design ${grade.toLowerCase()}`,
+    assessmentMethods: row.assessmentMethods || "Oral questions, observation",
+    reflection: "",
+  };
+}
+
+/** GUARDRAIL 6: Normalize AI key variants (snake_case, wrong casing, etc). */
+function normalizeRowKeys(raw: Record<string, unknown>): SchemeRow {
+  const keyMap: Record<string, string> = {
+    specificlearningoutcome: "specificLearningOutcome",
+    specificlearningoutcomes: "specificLearningOutcome",
+    specific_learning_outcome: "specificLearningOutcome",
+    specific_learning_outcomes: "specificLearningOutcome",
+    learning_outcome: "specificLearningOutcome",
+    keyinquiryquestion: "keyInquiryQuestion",
+    keyinquiryquestions: "keyInquiryQuestion",
+    key_inquiry_question: "keyInquiryQuestion",
+    key_inquiry_questions: "keyInquiryQuestion",
+    inquiry_question: "keyInquiryQuestion",
+    learningexperiences: "learningExperiences",
+    learning_experiences: "learningExperiences",
+    learningresources: "learningResources",
+    learning_resources: "learningResources",
+    assessmentmethods: "assessmentMethods",
+    assessment_methods: "assessmentMethods",
+    assessment: "assessmentMethods",
+    substrand: "subStrand",
+    sub_strand: "subStrand",
+  };
+  const normalized: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    const lk = key.toLowerCase().replace(/[-_\s]/g, "");
+    normalized[keyMap[lk] || key] = value;
+  }
+  return {
+    week: Number(normalized.week) || 1,
+    lesson: Number(normalized.lesson) || 1,
+    strand: String(normalized.strand || ""),
+    subStrand: String(normalized.subStrand || ""),
+    specificLearningOutcome: String(normalized.specificLearningOutcome || ""),
+    keyInquiryQuestion: String(normalized.keyInquiryQuestion || ""),
+    learningExperiences: String(normalized.learningExperiences || ""),
+    learningResources: String(normalized.learningResources || ""),
+    assessmentMethods: String(normalized.assessmentMethods || ""),
+    reflection: "",
+  };
+}
+
+/**
+ * MASTER GUARDRAIL: Apply ALL validations in sequence.
+ */
+function validateAndSanitizeRows(
+  rawRows: unknown[],
+  strand: string,
+  subStrandName: string,
+  grade: string,
+  subject: string,
+  weekStart: number,
+  lessonsPerWeek: number,
+): SchemeRow[] {
+  console.log(`Guardrails: processing ${rawRows.length} raw rows...`);
+  let rows: SchemeRow[] = rawRows.map(r => normalizeRowKeys(r as Record<string, unknown>));
+  rows = enforceStrandNames(rows, strand, subStrandName);
+  rows = enforceWeekLessonNumbering(rows, weekStart, lessonsPerWeek);
+  rows = rows.map((row) => {
+    row = ensureNoEmptyFields(row, grade, subject);
+    row.specificLearningOutcome = validateAndFixSLO(row.specificLearningOutcome);
+    row.learningExperiences = validateAndFixExperiences(row.learningExperiences);
+    return row;
+  });
+  const seen = new Set<string>();
+  const deduped = rows.filter((row) => {
+    const key = row.specificLearningOutcome.substring(0, 100);
+    if (seen.has(key)) {
+      console.warn(`Guardrails: removed duplicate row`);
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+  const final = enforceWeekLessonNumbering(deduped, weekStart, lessonsPerWeek);
+  console.log(`Guardrails: ${final.length} rows passed validation (from ${rawRows.length} raw)`);
+  return final;
 }
 
 const MAX_LESSONS_PER_BATCH = 8;
@@ -243,9 +389,8 @@ async function generateForSubStrand(
     batchIndex++;
   }
 
-  // GUARDRAIL: Enforce correct week/lesson numbering regardless of AI output
-  const fixedRows = enforceWeekLessonNumbering(allRows, weekStart, lessonsPerWeek);
-  console.log(`Post-processing: enforced week/lesson numbering for ${fixedRows.length} rows starting week ${weekStart}`);
+  // MASTER GUARDRAIL: validate & sanitize all rows
+  const fixedRows = validateAndSanitizeRows(allRows, strand, subStrand.name, grade, subject, weekStart, lessonsPerWeek);
 
   const totalWeeks = Math.ceil(fixedRows.length / lessonsPerWeek);
   return { rows: fixedRows, weeksUsed: totalWeeks };
@@ -425,9 +570,9 @@ Return ONLY a valid JSON array.`;
       );
     }
 
-    // GUARDRAIL: Enforce correct week/lesson numbering
-    rows = enforceWeekLessonNumbering(rows, 1, lessonsPerWeek);
-    console.log(`Generated ${rows.length} lesson rows successfully (with numbering fix)`);
+    // MASTER GUARDRAIL: validate & sanitize all rows
+    rows = validateAndSanitizeRows(rows, strand, strand, grade, subject, 1, lessonsPerWeek);
+    console.log(`Generated ${rows.length} lesson rows successfully (with full validation)`);
 
     return new Response(
       JSON.stringify({ rows, source: "ai_knowledge" }),
