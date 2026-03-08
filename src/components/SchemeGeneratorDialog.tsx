@@ -165,8 +165,8 @@ const SchemeGeneratorDialog = () => {
           <td>${row.strand}</td>
           <td>${row.subStrand}</td>
           <td>${row.specificLearningOutcome.replace(/\n/g, "<br/>")}</td>
-          <td>${row.keyInquiryQuestion}</td>
           <td>${row.learningExperiences.replace(/\n/g, "<br/>")}</td>
+          <td>${row.keyInquiryQuestion}</td>
           <td>${row.learningResources}</td>
           <td>${row.assessmentMethods}</td>
           <td>${row.reflection}</td>

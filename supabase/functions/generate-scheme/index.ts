@@ -127,17 +127,18 @@ YOUR GOAL: Generate detailed, pedagogically sound Schemes of Work that focus on 
 RULES:
 1. Generate EXACTLY ${batchLessons} lesson rows for ${grade} learners.
 2. Keep everything SIMPLE, age-appropriate, and inclusive of diverse learning needs and environments.
-3. **Specific Learning Outcomes** — For each lesson, derive 1-3 SHORT measurable outcomes from the official KICD outcomes below. Use the three-domain formula: [Action Verb] + [Subject Matter] + [Context/Standard].
-   - Knowledge (Cognitive): Use MEASURABLE verbs ONLY — Define, List, State, Name, Label, Recall, Identify, Describe, Explain, Summarize, Distinguish, Illustrate. NEVER use "know", "understand", or "be aware of".
-   - Skills (Psychomotor): Use verbs requiring a TANGIBLE output — Execute, Perform, Construct, Demonstrate, Draw, Write, Sing, Read, Calculate, Measure, Sketch, Solve, Model, Trace, Cut, Colour, Paint. NEVER use "learn to...".
-   - Attitudes/Values (Affective): Link to OBSERVABLE behaviour — Appreciate, Respect, Value, Practise, Uphold, Collaborate, Persist, Commit, Adhere, Advocate. NEVER use "have a positive attitude".
-   EXACT FORMAT (use lettered bullets):
-   "By the end of the lesson, the learner should be able to:\\na) [first outcome]\\nb) [second outcome]\\nc) [third outcome]"
-4. **Key Inquiry Question**: ${hasOfficialData ? 'Use the official KICD question provided, or create a closely related child-friendly variant per lesson.' : 'ONE open-ended question to stimulate curiosity and critical thinking.'} Must be age-appropriate.
-5. **Learning Experiences**: ${hasOfficialData ? 'Select 2-4 STUDENT-CENTERED activities FROM the official suggested experiences below. Distribute them across lessons so all are covered.' : '2-4 student-centered activities (observing, discussing, drawing, role-playing, experimenting).'}
+3. **Specific Learning Outcomes** — EXACTLY 3 outcomes per lesson, one from each domain. Use the official KICD outcomes below as source material.
+   MANDATORY FORMAT — no other format is acceptable:
+   "By the end of the lesson, the learner should be able to:\\na) [Knowledge outcome]\\nb) [Skills outcome]\\nc) [Attitudes/Values outcome]"
+   - a) Knowledge (Cognitive): Use MEASURABLE verbs ONLY — Define, List, State, Name, Label, Recall, Identify, Describe, Explain, Summarize, Distinguish, Illustrate. NEVER use "know", "understand", or "be aware of".
+   - b) Skills (Psychomotor): Use verbs requiring a TANGIBLE output — Execute, Perform, Construct, Demonstrate, Draw, Write, Sing, Read, Calculate, Measure, Sketch, Solve, Model, Trace, Cut, Colour, Paint. NEVER use "learn to...".
+   - c) Attitudes/Values (Affective): Link to OBSERVABLE behaviour — Appreciate, Respect, Value, Practise, Uphold, Collaborate, Persist, Commit, Adhere, Advocate. NEVER use "have a positive attitude".
+   Every lesson MUST have exactly a), b), c) — one knowledge, one skill, one attitude. No more, no less.
+4. **Learning Experiences**: ${hasOfficialData ? 'Select 2-4 STUDENT-CENTERED activities FROM the official suggested experiences below. Distribute them across lessons so all are covered.' : '2-4 student-centered activities (observing, discussing, drawing, role-playing, experimenting).'}
    EXACT FORMAT (use lettered bullets):
    "a) [first activity]\\nb) [second activity]\\nc) [third activity]"
    Activities must account for diverse learning environments.
+5. **Key Inquiry Question**: ${hasOfficialData ? 'Use the official KICD question provided, or create a closely related child-friendly variant per lesson.' : 'ONE open-ended question to stimulate curiosity and critical thinking.'} Must be age-appropriate.
 6. **Learning Resources**: "${subject} Curriculum Design ${grade.toLowerCase()}" plus contextual resources (digital devices, local environment, charts, textbooks, realia). Include locally available materials.
 7. **Assessment**: Methods to evaluate learning — "oral questions, observation" or add "written exercise, portfolio, peer assessment" as appropriate. Must match the learning outcome.
 8. **Reflection**: always "".
