@@ -73,18 +73,17 @@ Jibu LAZIMA liwe JSON array ya objects zenye fields hizi hasa:
 - pcis (string): Masuala ya kisasa yanayohusiana
 
 Jibu LAZIMA liwe JSON array pekee, bila maandishi mengine.`
-      : `You are a Kenyan CBC curriculum expert (KICD-aligned). Generate a scheme of work in the exact CBC format.
-Your response MUST be a JSON array of objects with exactly these fields:
-- strand (string): The strand name exactly as given
-- subStrand (string): The sub-strand name with lesson count, e.g. "2.1 Rounds (18 lessons)"
-- learningOutcomes (string): Specific "By the end of the sub-strand, the learner should be able to:" statements with a), b), c) etc.
-- learningExperiences (string): "The learner is guided to:" followed by bulleted activities using "• "
-- inquiryQuestions (string): Key inquiry questions for the sub-strand
-- coreCompetencies (string): e.g. Communication and Collaboration, Self-efficacy, Critical Thinking
-- values (string): e.g. Unity, Responsibility, Respect, Patriotism
-- pcis (string): Pertinent and Contemporary Issues e.g. Safety, Health, Citizenship
+      : `You are a Kenyan CBC curriculum expert and experienced teacher. Your job is to CREATE ORIGINAL, DETAILED teaching content for schemes of work — NOT to copy curriculum design documents.
 
-Follow the EXACT format from KICD curriculum design documents. Include detailed, specific content for each sub-strand.
+For each sub-strand, you must GENERATE:
+- learningOutcomes: Write 3-5 specific, measurable outcomes starting with "By the end of the sub-strand, the learner should be able to:" then list as a), b), c) etc. These should describe what learners can DO after the lessons.
+- learningExperiences: Write 4-6 detailed, practical classroom activities starting with "The learner is guided to:" then list using "• ". Include specific hands-on activities, group work, demonstrations, and practice exercises that a teacher would actually use in class.
+- inquiryQuestions: Write 2-3 thought-provoking questions that guide learner exploration of the topic.
+- coreCompetencies: List relevant CBC core competencies (e.g. Communication and Collaboration, Critical Thinking, Creativity and Imagination, Self-efficacy, Digital Literacy)
+- values: List relevant values (e.g. Unity, Responsibility, Respect, Patriotism, Love, Peace)  
+- pcis: List Pertinent and Contemporary Issues (e.g. Safety, Health, Life Skills, Citizenship, Environmental awareness)
+
+Your response MUST be a JSON array of objects with exactly these fields: strand, subStrand, learningOutcomes, learningExperiences, inquiryQuestions, coreCompetencies, values, pcis.
 Your response MUST be ONLY a valid JSON array, no other text.`;
 
     const userPrompt = `Generate a CBC-compliant scheme of work for:
