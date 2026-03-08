@@ -22,59 +22,61 @@ export const columnHeaders = {
   ],
 };
 
-export const kiswahiliSubjects = ["Kiswahili Language Activities", "Kiswahili"];
+export const kiswahiliSubjects = ["Kiswahili"];
 
-// Grade levels
 export const grades = [
   "Grade 1", "Grade 2", "Grade 3",
   "Grade 4", "Grade 5", "Grade 6",
   "Grade 7", "Grade 8", "Grade 9",
 ];
 
-// Subjects differ by level per KICD CBC
+// Exact subject names from KICD website (kicd.ac.ke)
 const lowerPrimarySubjects = [
-  "Literacy Activities",
-  "English Language Activities",
-  "Kiswahili Language Activities",
-  "Mathematical Activities",
+  "Creative Activities",
+  "CRE",
+  "English Activities",
   "Environmental Activities",
-  "Hygiene and Nutrition Activities",
-  "Religious Education Activities (CRE)",
-  "Religious Education Activities (IRE)",
-  "Religious Education Activities (HRE)",
-  "Movement and Creative Activities",
+  "HRE",
+  "IRE",
+  "Kiswahili",
+  "Mathematics",
 ];
 
 const upperPrimarySubjects = [
-  "English",
-  "Kiswahili",
-  "Mathematics",
-  "Science and Technology",
-  "Social Studies",
-  "Religious Education (CRE)",
-  "Religious Education (IRE)",
-  "Religious Education (HRE)",
   "Agriculture",
-  "Home Science",
+  "Arabic",
   "Creative Arts",
-  "Music",
-  "Physical and Health Education",
+  "CRE",
+  "English",
+  "French",
+  "German",
+  "HRE",
+  "Indigenous Language",
+  "IRE",
+  "Kiswahili",
+  "Mandarin",
+  "Mathematics",
+  "Science & Technology",
+  "Social Studies",
 ];
 
 const juniorSecondarySubjects = [
-  "English",
-  "Kiswahili",
-  "Mathematics",
-  "Integrated Science",
-  "Health Education",
-  "Pre-Technical and Pre-Career Education",
-  "Social Studies",
-  "Religious Education (CRE)",
-  "Religious Education (IRE)",
-  "Religious Education (HRE)",
-  "Business Studies",
   "Agriculture",
-  "Creative Arts and Sports",
+  "Arabic",
+  "Creative Arts",
+  "CRE",
+  "English",
+  "French",
+  "German",
+  "HRE",
+  "Indigenous Language",
+  "Integrated Science",
+  "IRE",
+  "Kiswahili",
+  "Mandarin",
+  "Mathematics",
+  "Pre-Technical Studies",
+  "Social Studies",
 ];
 
 export function getSubjectsForGrade(grade: string): string[] {
