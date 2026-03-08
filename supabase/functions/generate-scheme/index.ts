@@ -416,7 +416,7 @@ Return ONLY a valid JSON array.`;
       );
     }
 
-    const rows = extractJsonArray(rawContent);
+    let rows = extractJsonArray(rawContent);
 
     if (rows.length === 0) {
       return new Response(
@@ -425,7 +425,9 @@ Return ONLY a valid JSON array.`;
       );
     }
 
-    console.log(`Generated ${rows.length} lesson rows successfully`);
+    // GUARDRAIL: Enforce correct week/lesson numbering
+    rows = enforceWeekLessonNumbering(rows, 1, lessonsPerWeek);
+    console.log(`Generated ${rows.length} lesson rows successfully (with numbering fix)`);
 
     return new Response(
       JSON.stringify({ rows, source: "ai_knowledge" }),
