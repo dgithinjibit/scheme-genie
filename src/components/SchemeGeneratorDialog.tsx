@@ -35,6 +35,7 @@ const SchemeGeneratorDialog = () => {
   const [loading, setLoading] = useState(false);
   const [generatedRows, setGeneratedRows] = useState<SchemeRow[] | null>(null);
   const [availableStrands, setAvailableStrands] = useState<string[]>([]);
+  const [availableSubStrands, setAvailableSubStrands] = useState<string[]>([]);
   const [loadingStrands, setLoadingStrands] = useState(false);
 
   // TODO: Remove test filter — temporarily locked for testing
