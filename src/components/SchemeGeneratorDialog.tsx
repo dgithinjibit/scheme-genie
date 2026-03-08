@@ -88,11 +88,27 @@ const SchemeGeneratorDialog = () => {
     setGrade("");
     setSubject("");
     setStrand("");
+    setSubStrand("");
     setContext("");
     setGeneratedRows(null);
     setLoading(false);
     setAvailableStrands([]);
+    setAvailableSubStrands([]);
   };
+
+  // Populate sub-strands when strand is selected
+  useEffect(() => {
+    if (!grade || !subject || !strand) {
+      setAvailableSubStrands([]);
+      return;
+    }
+    const subs = getSubStrandsForStrand(grade, subject, strand);
+    if (subs) {
+      setAvailableSubStrands(subs.map(s => s.name));
+    } else {
+      setAvailableSubStrands([]);
+    }
+  }, [grade, subject, strand]);
 
   const handleGenerate = async () => {
     if (!grade || !subject || !strand) {
