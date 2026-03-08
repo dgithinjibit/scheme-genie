@@ -137,3 +137,79 @@ export const grade4English: StrandInfo[] = [
     ],
   },
 ];
+
+/**
+ * Grade 5 English Language — Official KICD Revised 2024
+ * Total: 150 lessons (5 lessons/week × 30 weeks)
+ */
+export const grade5English: StrandInfo[] = [
+  {
+    name: "Listening and Speaking",
+    subStrands: [
+      { name: "Listening Comprehension", lessons: 5, keyInquiryQuestion: "Why should you listen keenly?" },
+      { name: "Pronunciation and Vocabulary", lessons: 30, keyInquiryQuestion: "Why should we pronounce sounds and words correctly?" },
+      { name: "Speaking Fluency", lessons: 3, keyInquiryQuestion: "How can you speak fluently and confidently?" },
+    ],
+  },
+  {
+    name: "Reading",
+    subStrands: [
+      { name: "Extensive Reading", lessons: 12, keyInquiryQuestion: "Why should we read different types of materials?" },
+      { name: "Intensive Reading", lessons: 24, keyInquiryQuestion: "How can we obtain information from texts?" },
+      { name: "Fluency", lessons: 3, keyInquiryQuestion: "Why is it important to read fluently?" },
+    ],
+  },
+  {
+    name: "Grammar in Use",
+    subStrands: [
+      { name: "Word Classes", lessons: 26, keyInquiryQuestion: "Why is it important to use correct grammar?" },
+      { name: "Language Patterns", lessons: 9, keyInquiryQuestion: "How do language patterns help us communicate?" },
+      { name: "Tense", lessons: 2, keyInquiryQuestion: "Why is it important to show when something happened?" },
+    ],
+  },
+  {
+    name: "Writing",
+    subStrands: [
+      { name: "Creative Writing", lessons: 15, keyInquiryQuestion: "How can you write an interesting composition?" },
+      { name: "Functional Writing", lessons: 8, keyInquiryQuestion: "Why do we write functional texts?" },
+      { name: "Mechanics of Writing", lessons: 13, keyInquiryQuestion: "Why do you use punctuation marks?" },
+    ],
+  },
+];
+
+/**
+ * Grade 6 English Language — Official KICD Revised 2024
+ * Total: 150 lessons (5 lessons/week × 30 weeks)
+ */
+export const grade6English: StrandInfo[] = [
+  {
+    name: "Listening and Speaking",
+    subStrands: [
+      { name: "Pronunciation and Vocabulary", lessons: 39, keyInquiryQuestion: "Why should we pronounce sounds and words correctly?" },
+    ],
+  },
+  {
+    name: "Reading",
+    subStrands: [
+      { name: "Extensive Reading", lessons: 11, keyInquiryQuestion: "Why should we read a variety of materials?" },
+      { name: "Intensive Reading", lessons: 22, keyInquiryQuestion: "How can we obtain information from texts?" },
+      { name: "Fluency", lessons: 3, keyInquiryQuestion: "Why is it important to read fluently?" },
+    ],
+  },
+  {
+    name: "Language Use",
+    subStrands: [
+      { name: "Word Classes", lessons: 33, keyInquiryQuestion: "Why is it important to use correct grammar?" },
+      { name: "Tenses", lessons: 6, keyInquiryQuestion: "Why is it important to show when something happened?" },
+    ],
+  },
+  {
+    name: "Writing",
+    subStrands: [
+      { name: "Creative Writing", lessons: 14, keyInquiryQuestion: "How can you make your writing interesting?" },
+      { name: "Functional Writing", lessons: 6, keyInquiryQuestion: "Why do we write functional texts?" },
+      { name: "Mechanics of Writing", lessons: 13, keyInquiryQuestion: "Why do you use punctuation marks?" },
+      { name: "Guided Compositions", lessons: 3, keyInquiryQuestion: "Why should we keep a record of what we do?" },
+    ],
+  },
+];
