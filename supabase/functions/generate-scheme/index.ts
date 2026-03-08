@@ -24,6 +24,146 @@ interface SubStrandInfo {
 
 const kiswahiliSubjects = ["Kiswahili"];
 
+function extractJsonArray(raw: string): SchemeRow[] {
+  let cleaned = raw.trim();
+  // Remove markdown code fences
+  if (cleaned.startsWith("```")) {
+    cleaned = cleaned.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
+  }
+  cleaned = cleaned.trim();
+
+  // Find the JSON array boundaries
+  const start = cleaned.indexOf("[");
+  if (start === -1) throw new Error("No JSON array found in response");
+
+  const end = cleaned.lastIndexOf("]");
+
+  // If we have a complete array, parse directly
+  if (end > start) {
+    try {
+      return JSON.parse(cleaned.substring(start, end + 1));
+    } catch {
+      // Fall through to recovery
+    }
+  }
+
+  // Truncated response — try to recover partial array
+  console.warn("Response appears truncated, attempting recovery...");
+  let partial = cleaned.substring(start);
+
+  // Remove trailing commas and incomplete objects
+  // Find the last complete object (ending with })
+  const lastBrace = partial.lastIndexOf("}");
+  if (lastBrace > 0) {
+    let repaired = partial.substring(0, lastBrace + 1);
+    // Remove any trailing comma after the last }
+    repaired = repaired.replace(/,\s*$/, "");
+    // Close the array
+    repaired += "]";
+    // Fix common issues
+    repaired = repaired
+      .replace(/,\s*}/g, "}")
+      .replace(/,\s*]/g, "]");
+
+    try {
+      const items = JSON.parse(repaired);
+      console.warn(`Recovered ${items.length} items from truncated response`);
+      return items;
+    } catch (e) {
+      throw new Error(`Cannot recover truncated JSON: ${e}`);
+    }
+  }
+
+  throw new Error("No parseable JSON found in response");
+}
+
+async function generateForSubStrand(
+  LOVABLE_API_KEY: string,
+  grade: string,
+  subject: string,
+  strand: string,
+  subStrand: SubStrandInfo,
+  context: string,
+  isSw: boolean,
+  weekStart: number,
+): Promise<{ rows: SchemeRow[]; weeksUsed: number }> {
+  const exampleRows = `EXAMPLE (Environmental Activities, "Our living environment" sub-strand):
+Row 1: week=1, lesson=1, outcome="* identify locally available materials used as beddings\\n* draw items used as beddings", question="What are beddings?", experiences="* identify locally available materials used as beddings\\n* draw items used as beddings"
+Row 2: week=1, lesson=2, outcome="* identify locally available materials used as beddings", question="Name items that are used as beddings?", experiences="* discuss locally available materials used as beddings\\n* use digital devices to search for items used as beddings"
+
+PATTERN: Each lesson is SIMPLE, SHORT outcomes (1-3 bullets), 2-4 activities, one child-friendly question.`;
+
+  const systemPrompt = isSw
+    ? `Wewe ni mwalimu mtaalamu wa CBC Kenya. Tengeneza mpango wa kazi kwa mada ndogo moja. Kila somo liwe RAHISI na FUPI. Jibu LAZIMA liwe JSON array pekee.`
+    : `You are an experienced Kenyan CBC primary school teacher creating a SCHEME OF WORK for ONE sub-strand only.
+
+${exampleRows}
+
+RULES:
+1. Generate EXACTLY ${subStrand.lessons} lesson rows for this sub-strand.
+2. Keep everything SIMPLE and age-appropriate for ${grade} children.
+3. Outcomes: "By the end of the lesson the learner should be able to:" then 1-3 SHORT bullet points with "* " prefix.
+4. Key Inquiry Question: ONE short child-friendly question.
+5. Learning Experiences: 2-4 simple activities with "* " prefix.
+6. Learning Resources: "${subject} Curriculum design ${grade.toLowerCase()}" plus textbooks.
+7. Assessment: "oral questions, written questions" or add "observation".
+8. Reflection: always "".
+9. Week numbering starts from ${weekStart}. Fit 2-3 lessons per week. Lesson numbers 1, 2, 3 within each week.
+10. Progress gradually: introduce → practice → apply → review.
+
+Return ONLY a valid JSON array of ${subStrand.lessons} objects. No other text.`;
+
+  const userPrompt = `Generate ${subStrand.lessons} lesson rows for:
+- Grade: ${grade}, Subject: ${subject}
+- Strand: ${strand}
+- Sub-strand: ${subStrand.name} (${subStrand.lessons} lessons)
+${context ? `- Resources: ${context}` : ""}
+
+Each row needs: week, lesson, strand, subStrand, specificLearningOutcome, keyInquiryQuestion, learningExperiences, learningResources, assessmentMethods, reflection.
+The "strand" field = "${strand}", the "subStrand" field = "${subStrand.name}".
+Start week numbering from ${weekStart}.
+
+Return ONLY a JSON array of exactly ${subStrand.lessons} objects.`;
+
+  const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+  });
+
+  if (!aiResponse.ok) {
+    const errorText = await aiResponse.text();
+    console.error(`AI error for ${subStrand.name}:`, aiResponse.status, errorText);
+    if (aiResponse.status === 429) {
+      throw new Error("RATE_LIMIT");
+    }
+    throw new Error(`AI generation failed for ${subStrand.name}`);
+  }
+
+  const aiData = await aiResponse.json();
+  const rawContent = aiData.choices?.[0]?.message?.content;
+
+  if (!rawContent) {
+    throw new Error(`AI returned empty response for ${subStrand.name}`);
+  }
+
+  const rows = extractJsonArray(rawContent);
+  console.log(`Generated ${rows.length} rows for ${subStrand.name} (expected ${subStrand.lessons})`);
+
+  // Calculate weeks used
+  const maxWeek = rows.reduce((max, r) => Math.max(max, r.week || 0), weekStart);
+  return { rows, weeksUsed: maxWeek - weekStart + 1 };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -40,7 +180,6 @@ Deno.serve(async (req) => {
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
     if (!LOVABLE_API_KEY) {
       return new Response(
         JSON.stringify({ error: "LOVABLE_API_KEY is not configured" }),
@@ -50,93 +189,68 @@ Deno.serve(async (req) => {
 
     const isSw = kiswahiliSubjects.includes(subject);
 
-    // Build sub-strand context
-    let subStrandContext = "";
-    let totalLessons = 0;
+    // If we have sub-strands, generate per sub-strand to avoid truncation
     if (subStrands && Array.isArray(subStrands) && subStrands.length > 0) {
-      totalLessons = (subStrands as SubStrandInfo[]).reduce((sum, ss) => sum + ss.lessons, 0);
-      subStrandContext = `\n\nThe EXACT official KICD sub-strands for this strand are:\n${
-        (subStrands as SubStrandInfo[]).map(ss => `- "${ss.name}" (${ss.lessons} lessons)`).join("\n")
-      }\n\nTotal lessons across all sub-strands: ${totalLessons}
+      const totalLessons = (subStrands as SubStrandInfo[]).reduce((sum, ss) => sum + ss.lessons, 0);
+      console.log(`Generating scheme for ${grade} ${subject} - ${strand} (${totalLessons} total lessons across ${subStrands.length} sub-strands, generating per sub-strand)`);
 
-CRITICAL RULES:
-1. Generate EXACTLY one row per LESSON — NOT one row per sub-strand.
-2. For a sub-strand with N lessons, generate N separate rows, each representing one lesson.
-3. Distribute the learning outcomes across lessons progressively — early lessons introduce concepts, later lessons deepen and apply.
-4. Each lesson row should have a FOCUSED, SPECIFIC outcome for that single lesson (not the whole sub-strand outcome).
-5. The "week" field should increment logically (multiple lessons per week is fine, use lesson numbers 1,2,3 etc within each week).
-6. The "strand" field MUST be exactly "${strand}" for every row.
-7. The "subStrand" field MUST use the EXACT sub-strand name from the list above.`;
+      const allRows: SchemeRow[] = [];
+      let currentWeek = 1;
+
+      for (const ss of subStrands as SubStrandInfo[]) {
+        try {
+          const { rows, weeksUsed } = await generateForSubStrand(
+            LOVABLE_API_KEY, grade, subject, strand, ss, context || "", isSw, currentWeek
+          );
+          allRows.push(...rows);
+          currentWeek += weeksUsed;
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Unknown error";
+          if (msg === "RATE_LIMIT") {
+            // Return what we have so far
+            if (allRows.length > 0) {
+              console.warn(`Rate limited after ${allRows.length} rows, returning partial results`);
+              return new Response(
+                JSON.stringify({ rows: allRows, source: "hardcoded_context", partial: true }),
+                { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+              );
+            }
+            return new Response(
+              JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+              { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+          console.error(`Error generating ${ss.name}: ${msg}`);
+          // Continue with next sub-strand
+        }
+      }
+
+      if (allRows.length === 0) {
+        return new Response(
+          JSON.stringify({ error: "Failed to generate any lesson rows. Please try again." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log(`Generated ${allRows.length} total lesson rows across all sub-strands`);
+
+      return new Response(
+        JSON.stringify({ rows: allRows, source: "hardcoded_context" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    const exampleRows = `
-EXAMPLE of how a Grade 3 scheme of work looks (Environmental Activities, Social Environment strand, "Our living environment" sub-strand with 10 lessons):
-
-Row 1: week=1, lesson=1, outcome="identify locally available materials used as beddings\n* draw items used as beddings\n* appreciate sleeping in a clean place", question="What are beddings?", experiences="* identify locally available materials used as beddings\n* draw items used as beddings\n* appreciate sleeping in a clean place", resources="Environmental Activities Curriculum design grade 3", assessment="oral questions, written questions"
-Row 2: week=1, lesson=2, outcome="identify locally available materials used as beddings", question="Name items that are used as beddings?", experiences="* discuss locally available materials used as beddings\n* use digital devices to search for items used as beddings", resources="Environmental Activities Curriculum design grade 3, Our lives today grade 3", assessment="oral questions, written questions"
-Row 3: week=1, lesson=3, outcome="state causes of bedwetting\n* use digital devices to search for hygiene practices to observe during bedwetting\n* appreciate sleeping in a clean place", question="What are causes of bedwetting?", experiences="* discuss causes of bedwetting\n* use digital devices to search for hygiene practices to observe during bedwetting", resources="Our lives today grade 3", assessment="oral questions, written questions"
-
-NOTICE THE PATTERN:
-- Each lesson covers a SMALL, simple, age-appropriate topic for young children
-- Outcomes are SHORT (1-3 bullet points, each one line)
-- Learning experiences are SIMPLE practical activities (2-4 bullets)
-- Questions are SHORT and child-friendly
-- The SAME sub-strand continues across many lessons, each building slightly
-- Assessment is always simple: "oral questions, written questions" or "observation"
-- Resources reference the curriculum design document and relevant textbooks`;
+    // Fallback: no sub-strands, single generation
+    console.log(`Generating scheme for ${grade} ${subject} - ${strand} (no sub-strand data)`);
 
     const systemPrompt = isSw
-      ? `Wewe ni mwalimu mtaalamu wa CBC Kenya. Tengeneza mpango wa kazi (scheme of work) kwa muundo wa masomo ya kila somo moja moja.
+      ? `Wewe ni mwalimu mtaalamu wa CBC Kenya. Tengeneza mpango wa kazi. Jibu LAZIMA liwe JSON array pekee.`
+      : `You are an experienced Kenyan CBC teacher creating a scheme of work. Generate 10-15 lesson rows. Return ONLY a JSON array.`;
 
-MUHIMU: Hii ni kwa watoto wadogo. Kila somo liwe RAHISI na FUPI. Matokeo yawe 1-3 tu, shughuli 2-4, swali moja fupi.
-
-Jibu LAZIMA liwe JSON array ya objects zenye fields hizi:
-- week (number): Nambari ya wiki
-- lesson (number): Nambari ya somo ndani ya wiki (1, 2, au 3)
-- strand (string): Mada kuu
-- subStrand (string): Mada ndogo
-- specificLearningOutcome (string): "Mwishoni mwa somo, mwanafunzi aweze:" kisha matokeo 1-3 rahisi, kila moja mstari wake ukianza na "* "
-- keyInquiryQuestion (string): Swali MOJA fupi la uchunguzi
-- learningExperiences (string): Shughuli 2-4 rahisi, kila moja ikianza na "* "
-- learningResources (string): Rasilimali
-- assessmentMethods (string): "maswali ya mdomo, maswali ya maandishi"
-- reflection (string): Acha tupu ""
-
-Jibu LAZIMA liwe JSON array pekee.`
-      : `You are an experienced Kenyan CBC primary school teacher creating a SCHEME OF WORK.
-
-A scheme of work breaks down the curriculum design into INDIVIDUAL LESSON PLANS — one row per lesson.
-
-${exampleRows}
-
-RULES FOR GENERATING:
-1. Generate EXACTLY the number of lesson rows specified for each sub-strand (if sub-strand has 18 lessons, generate 18 rows).
-2. Each lesson row must be SIMPLE and age-appropriate for ${grade} children.
-3. Outcomes: Start with "By the end of the lesson the learner should be able to:" then 1-3 SHORT bullet points using "* " prefix. Keep each point to ONE simple sentence.
-4. Key Inquiry Question: ONE short, child-friendly question.
-5. Learning Experiences: 2-4 simple activities using "* " prefix. Include "use digital devices" occasionally.
-6. Learning Resources: Reference "${subject} Curriculum design ${grade.toLowerCase()}" plus relevant textbooks.
-7. Assessment: Keep it simple — "oral questions, written questions" or add "observation" where hands-on.
-8. Reflection: Always empty string "".
-9. Week numbering: Start from 1. Fit 2-3 lessons per week. Lesson numbers reset each week (1, 2, 3).
-10. Progress through the sub-strand gradually — introduce, practice, apply, review.
-
-Your response MUST be ONLY a valid JSON array. No other text.`;
-
-    const userPrompt = `Generate a CBC scheme of work for:
-- Grade: ${grade}
-- Subject: ${subject}  
-- Strand: ${strand}
-${subStrandContext}
-${context ? `\nLearning resources available: ${context}` : ""}
-
-CRITICAL: You MUST generate EXACTLY the total number of lesson rows matching the lesson counts above. Each sub-strand with N lessons = N separate rows. Do NOT skip or summarize. Do NOT combine multiple lessons into one row.
-
-For ${grade} students, keep everything SIMPLE — short outcomes, simple activities, child-friendly questions.
-
+    const userPrompt = `Generate a CBC scheme of work for ${grade} ${subject} - ${strand}.
+${context ? `Resources: ${context}` : ""}
+Each row: week, lesson, strand, subStrand, specificLearningOutcome, keyInquiryQuestion, learningExperiences, learningResources, assessmentMethods, reflection.
 Return ONLY a valid JSON array.`;
-
-    console.log(`Generating scheme for ${grade} ${subject} - ${strand} (${totalLessons} total lessons across ${subStrands?.length || "unknown"} sub-strands)`);
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -156,14 +270,12 @@ Return ONLY a valid JSON array.`;
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
       console.error("AI gateway error:", aiResponse.status, errorText);
-
       if (aiResponse.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-
       return new Response(
         JSON.stringify({ error: "AI generation failed" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -180,23 +292,9 @@ Return ONLY a valid JSON array.`;
       );
     }
 
-    let jsonStr = rawContent.trim();
-    if (jsonStr.startsWith("```")) {
-      jsonStr = jsonStr.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
-    }
+    const rows = extractJsonArray(rawContent);
 
-    let rows: SchemeRow[];
-    try {
-      rows = JSON.parse(jsonStr);
-    } catch {
-      console.error("Failed to parse AI response:", jsonStr.substring(0, 500));
-      return new Response(
-        JSON.stringify({ error: "AI returned invalid format. Please try again." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (!Array.isArray(rows) || rows.length === 0) {
+    if (rows.length === 0) {
       return new Response(
         JSON.stringify({ error: "AI returned empty scheme. Please try again." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -206,7 +304,7 @@ Return ONLY a valid JSON array.`;
     console.log(`Generated ${rows.length} lesson rows successfully`);
 
     return new Response(
-      JSON.stringify({ rows, source: subStrands ? "hardcoded_context" : "ai_knowledge" }),
+      JSON.stringify({ rows, source: "ai_knowledge" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
