@@ -86,6 +86,7 @@ async function generateForSubStrand(
   context: string,
   isSw: boolean,
   weekStart: number,
+  lessonsPerWeek: number,
 ): Promise<{ rows: SchemeRow[]; weeksUsed: number }> {
   const exampleRows = `EXAMPLE (Environmental Activities, "Our living environment" sub-strand):
 Row 1: week=1, lesson=1, outcome="* identify locally available materials used as beddings\\n* draw items used as beddings", question="What are beddings?", experiences="* identify locally available materials used as beddings\\n* draw items used as beddings"
@@ -108,7 +109,7 @@ RULES:
 6. Learning Resources: "${subject} Curriculum design ${grade.toLowerCase()}" plus textbooks.
 7. Assessment: "oral questions, written questions" or add "observation".
 8. Reflection: always "".
-9. Week numbering starts from ${weekStart}. Fit 2-3 lessons per week. Lesson numbers 1, 2, 3 within each week.
+9. Week numbering starts from ${weekStart}. Fit exactly ${lessonsPerWeek} lessons per week (this subject has ${lessonsPerWeek} lessons/week per KICD allocation). Lesson numbers 1, 2, 3... up to ${lessonsPerWeek} within each week.
 10. Progress gradually: introduce → practice → apply → review.
 
 Return ONLY a valid JSON array of ${subStrand.lessons} objects. No other text.`;
@@ -170,7 +171,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { grade, subject, strand, context, subStrands } = await req.json();
+    const { grade, subject, strand, context, subStrands, lessonsPerWeek = 5 } = await req.json();
 
     if (!grade || !subject || !strand) {
       return new Response(
@@ -200,7 +201,7 @@ Deno.serve(async (req) => {
       for (const ss of subStrands as SubStrandInfo[]) {
         try {
           const { rows, weeksUsed } = await generateForSubStrand(
-            LOVABLE_API_KEY, grade, subject, strand, ss, context || "", isSw, currentWeek
+            LOVABLE_API_KEY, grade, subject, strand, ss, context || "", isSw, currentWeek, lessonsPerWeek
           );
           allRows.push(...rows);
           currentWeek += weeksUsed;

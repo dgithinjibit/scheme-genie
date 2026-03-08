@@ -38,6 +38,21 @@ export const columnHeaders = {
 
 export const kiswahiliSubjects = ["Kiswahili"];
 
+// Official KICD lesson allocation per week (Lower Primary shown in curriculum design docs)
+const lessonsPerWeekMap: Record<string, number> = {
+  "Indigenous Language Activities": 2,
+  "Kiswahili": 4,
+  "English Activities": 5,
+  "Mathematics": 5,
+  "CRE": 3, "HRE": 3, "IRE": 3,
+  "Environmental Activities": 4,
+  "Creative Activities": 7,
+};
+
+export function getLessonsPerWeek(subject: string): number {
+  return lessonsPerWeekMap[subject] || 5;
+}
+
 export const grades = [
   "Grade 1", "Grade 2", "Grade 3",
   "Grade 4", "Grade 5", "Grade 6",

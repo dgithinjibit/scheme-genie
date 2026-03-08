@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { grades, getSubjectsForGrade, getHardcodedStrands, getSubStrandsForStrand, type SchemeRow } from "@/data/curriculum";
+import { grades, getSubjectsForGrade, getHardcodedStrands, getSubStrandsForStrand, getLessonsPerWeek, type SchemeRow } from "@/data/curriculum";
 import SchemePreview from "./SchemePreview";
 import { FileText, Download, Save, Loader2, Sparkles } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -122,8 +122,9 @@ const SchemeGeneratorDialog = () => {
       const selectedSub = allSubs?.find(s => s.name === subStrand);
       const subStrands = selectedSub ? [selectedSub] : [];
       
+      const lessonsPerWeek = getLessonsPerWeek(subject);
       const { data, error } = await supabase.functions.invoke("generate-scheme", {
-        body: { grade, subject, strand, context, subStrands },
+        body: { grade, subject, strand, context, subStrands, lessonsPerWeek },
       });
 
       if (error) throw error;
