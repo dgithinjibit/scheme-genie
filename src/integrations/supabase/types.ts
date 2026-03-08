@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      scheme_references: {
+        Row: {
+          content_snippet: string | null
+          description: string | null
+          grade: string | null
+          id: string
+          scraped_at: string
+          source_site: string
+          strand: string | null
+          subject: string | null
+          term: string | null
+          title: string | null
+          url: string
+        }
+        Insert: {
+          content_snippet?: string | null
+          description?: string | null
+          grade?: string | null
+          id?: string
+          scraped_at?: string
+          source_site: string
+          strand?: string | null
+          subject?: string | null
+          term?: string | null
+          title?: string | null
+          url: string
+        }
+        Update: {
+          content_snippet?: string | null
+          description?: string | null
+          grade?: string | null
+          id?: string
+          scraped_at?: string
+          source_site?: string
+          strand?: string | null
+          subject?: string | null
+          term?: string | null
+          title?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

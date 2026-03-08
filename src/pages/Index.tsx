@@ -1,5 +1,9 @@
+import { useState } from "react";
 import SchemeGeneratorDialog from "@/components/SchemeGeneratorDialog";
-import { BookOpen, CheckCircle, FileDown, Globe } from "lucide-react";
+import { BookOpen, CheckCircle, FileDown, Globe, Database, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const features = [
   {
@@ -25,6 +29,25 @@ const features = [
 ];
 
 const Index = () => {
+  const { toast } = useToast();
+  const [scraping, setScraping] = useState(false);
+
+  const handleScrapeSchemes = async () => {
+    setScraping(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("scrape-schemes");
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const summary = data.results?.map((r: any) => `${r.site}: ${r.inserted} new`).join(", ") || "Done";
+      toast({ title: "Scheme Index Updated", description: summary });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Scraping failed";
+      toast({ title: "Scrape Failed", description: msg, variant: "destructive" });
+    } finally {
+      setScraping(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Accent bar */}
@@ -63,6 +86,14 @@ const Index = () => {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* Admin Tools */}
+      <section className="px-6 py-4 flex justify-center">
+        <Button variant="outline" size="sm" onClick={handleScrapeSchemes} disabled={scraping}>
+          {scraping ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Database className="w-4 h-4 mr-2" />}
+          {scraping ? "Indexing Schemes..." : "Update Scheme References"}
+        </Button>
       </section>
 
       {/* Footer */}

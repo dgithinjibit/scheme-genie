@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.fetch-strands]
 verify_jwt = false
+
+[functions.scrape-schemes]
+verify_jwt = false
