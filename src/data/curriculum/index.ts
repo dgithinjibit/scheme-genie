@@ -17,6 +17,7 @@ export {
   grade2EnglishActivities,
   grade3EnglishActivities,
 } from "./lower-primary/english-activities";
+export { grade6Agriculture } from "./upper-primary/agriculture";
 
 import type { StrandInfo } from "./types";
 import { grade1CreativeActivities, grade3CreativeActivities } from "./lower-primary/creative-activities";
