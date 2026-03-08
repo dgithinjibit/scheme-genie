@@ -87,15 +87,37 @@ async function generateBatch(
   grade: string,
   subject: string,
   strand: string,
-  subStrandName: string,
+  subStrand: SubStrandInfo,
   batchLessons: number,
-  totalLessons: number,
   context: string,
   isSw: boolean,
   weekStart: number,
   lessonsPerWeek: number,
   batchIndex: number,
 ): Promise<SchemeRow[]> {
+  const subStrandName = subStrand.name;
+  const totalLessons = subStrand.lessons;
+
+  // Build official KICD context block
+  let officialContext = "";
+  if (subStrand.learningOutcomes?.length) {
+    officialContext += `\n\nOFFICIAL KICD LEARNING OUTCOMES for "${subStrandName}":\n`;
+    subStrand.learningOutcomes.forEach((o, i) => {
+      officialContext += `  ${String.fromCharCode(97 + i)}) ${o}\n`;
+    });
+  }
+  if (subStrand.keyInquiryQuestion) {
+    officialContext += `\nOFFICIAL KEY INQUIRY QUESTION: "${subStrand.keyInquiryQuestion}"\n`;
+  }
+  if (subStrand.suggestedExperiences?.length) {
+    officialContext += `\nOFFICIAL SUGGESTED LEARNING EXPERIENCES:\n`;
+    subStrand.suggestedExperiences.forEach(e => {
+      officialContext += `  - ${e}\n`;
+    });
+  }
+
+  const hasOfficialData = !!officialContext;
+
   const systemPrompt = isSw
     ? `Wewe ni mwalimu mtaalamu wa CBC Kenya. Tengeneza mpango wa kazi kwa mada ndogo moja. Kila somo liwe RAHISI na FUPI. Jibu LAZIMA liwe JSON array pekee.`
     : `You are an experienced Kenyan CBC primary school teacher creating a SCHEME OF WORK.
@@ -103,14 +125,18 @@ async function generateBatch(
 RULES:
 1. Generate EXACTLY ${batchLessons} lesson rows.
 2. Keep everything SIMPLE and age-appropriate for ${grade} children.
-3. Outcomes: "By the end of the lesson the learner should be able to:" then 1-3 SHORT bullet points with "* " prefix.
-4. Key Inquiry Question: ONE short child-friendly question.
-5. Learning Experiences: 2-4 simple activities with "* " prefix.
-6. Learning Resources: "${subject} Curriculum design ${grade.toLowerCase()}" plus textbooks.
+3. Specific Learning Outcomes: For each lesson, derive 1-3 SHORT outcomes from the official KICD outcomes below. Break them into:
+   - Knowledge (identify, state, name, describe)
+   - Skills (draw, write, sing, read)
+   - Attitudes/Values (appreciate, respect, value)
+   Format: "By the end of the lesson the learner should be able to:" then bullet points with "* " prefix.
+4. Key Inquiry Question: ${hasOfficialData ? 'Use the official question provided, or create a closely related child-friendly variant per lesson.' : 'ONE short child-friendly question.'}
+5. Learning Experiences: ${hasOfficialData ? 'Select 2-4 activities FROM the official suggested experiences below. Distribute them across lessons so all are covered by the end.' : '2-4 simple activities with "* " prefix.'}
+6. Learning Resources: "${subject} Curriculum design ${grade.toLowerCase()}" plus textbooks, Bible references where applicable.
 7. Assessment: "oral questions, written questions" or add "observation".
 8. Reflection: always "".
 9. Week numbering starts from ${weekStart}. Fit exactly ${lessonsPerWeek} lessons per week. Lesson numbers 1, 2, 3... up to ${lessonsPerWeek} within each week.
-10. Progress gradually: introduce → practice → apply → review.
+10. Progress gradually across ${totalLessons} total lessons: introduce concepts → practice → apply → review.${officialContext}
 
 Return ONLY a valid JSON array of ${batchLessons} objects. No other text.`;
 
@@ -119,7 +145,7 @@ Return ONLY a valid JSON array of ${batchLessons} objects. No other text.`;
 - Grade: ${grade}, Subject: ${subject}
 - Strand: ${strand}
 - Sub-strand: ${subStrandName} (${totalLessons} total lessons, this batch: ${batchLessons})${batchDesc}
-${context ? `- Resources: ${context}` : ""}
+${context ? `- Additional Resources: ${context}` : ""}
 
 Each row: week, lesson, strand, subStrand, specificLearningOutcome, keyInquiryQuestion, learningExperiences, learningResources, assessmentMethods, reflection.
 The "strand" field = "${strand}", the "subStrand" field = "${subStrandName}".
@@ -154,7 +180,7 @@ Return ONLY a JSON array of exactly ${batchLessons} objects.`;
   if (!rawContent) throw new Error(`AI returned empty response for ${subStrandName} batch ${batchIndex}`);
 
   const rows = extractJsonArray(rawContent);
-  console.log(`Batch ${batchIndex}: generated ${rows.length} rows for ${subStrandName} (expected ${batchLessons})`);
+  console.log(`Batch ${batchIndex}: generated ${rows.length} rows for ${subStrandName} (expected ${batchLessons})${hasOfficialData ? ' [with official KICD context]' : ''}`);
   return rows;
 }
 
