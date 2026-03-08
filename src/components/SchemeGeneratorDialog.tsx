@@ -48,6 +48,14 @@ const SchemeGeneratorDialog = () => {
     const fetchStrands = async () => {
       setLoadingStrands(true);
       try {
+        // Check hardcoded data first
+        const hardcoded = getHardcodedStrands(grade, subject);
+        if (hardcoded) {
+          setAvailableStrands(hardcoded.map(s => s.name));
+          setLoadingStrands(false);
+          return;
+        }
+
         const { data, error } = await supabase.functions.invoke("fetch-strands", {
           body: { grade, subject },
         });
