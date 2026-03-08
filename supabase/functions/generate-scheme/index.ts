@@ -109,7 +109,7 @@ RULES:
 6. Learning Resources: "${subject} Curriculum design ${grade.toLowerCase()}" plus textbooks.
 7. Assessment: "oral questions, written questions" or add "observation".
 8. Reflection: always "".
-9. Week numbering starts from ${weekStart}. Fit 2-3 lessons per week. Lesson numbers 1, 2, 3 within each week.
+9. Week numbering starts from ${weekStart}. Fit exactly ${lessonsPerWeek} lessons per week (this subject has ${lessonsPerWeek} lessons/week per KICD allocation). Lesson numbers 1, 2, 3... up to ${lessonsPerWeek} within each week.
 10. Progress gradually: introduce → practice → apply → review.
 
 Return ONLY a valid JSON array of ${subStrand.lessons} objects. No other text.`;
