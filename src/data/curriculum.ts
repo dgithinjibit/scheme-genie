@@ -1,3 +1,13 @@
+export interface SubStrandInfo {
+  name: string;
+  lessons: number;
+}
+
+export interface StrandInfo {
+  name: string;
+  subStrands: SubStrandInfo[];
+}
+
 export interface SchemeRow {
   strand: string;
   subStrand: string;
@@ -85,4 +95,61 @@ export function getSubjectsForGrade(grade: string): string[] {
   if (num >= 4 && num <= 6) return upperPrimarySubjects;
   if (num >= 7 && num <= 9) return juniorSecondarySubjects;
   return upperPrimarySubjects;
+}
+
+// ─── Hardcoded KICD strand data (verified from official curriculum designs) ───
+
+type CurriculumKey = string; // "Grade X|Subject"
+
+const hardcodedStrands: Record<CurriculumKey, StrandInfo[]> = {
+  "Grade 3|Creative Activities": [
+    {
+      name: "1.0 Creating and Executing",
+      subStrands: [
+        { name: "1.1 Pushing and Pulling", lessons: 14 },
+        { name: "1.2 Drawing and Painting", lessons: 14 },
+        { name: "1.3 Rhythm and Pattern Making", lessons: 18 },
+        { name: "1.4 Skipping", lessons: 14 },
+        { name: "1.5 Collage", lessons: 10 },
+        { name: "1.6 Melody", lessons: 14 },
+        { name: "1.7 Weaving", lessons: 14 },
+      ],
+    },
+    {
+      name: "2.0 Performing and Displaying",
+      subStrands: [
+        { name: "2.1 Rounds", lessons: 18 },
+        { name: "2.2 Galloping", lessons: 14 },
+        { name: "2.3 Sculpture", lessons: 14 },
+        { name: "2.4 Forward Roll and V-balance", lessons: 14 },
+        { name: "2.5 String Musical Instrument", lessons: 14 },
+        { name: "2.6 Modelling and Ornament Making", lessons: 10 },
+      ],
+    },
+    {
+      name: "3.0 Appreciation",
+      subStrands: [
+        { name: "3.1 The Kenya National Anthem", lessons: 14 },
+        { name: "3.2 Water Safety Awareness", lessons: 14 },
+      ],
+    },
+  ],
+};
+
+/**
+ * Get hardcoded strands for a grade+subject combo.
+ * Returns null if not yet hardcoded (will fall back to AI).
+ */
+export function getHardcodedStrands(grade: string, subject: string): StrandInfo[] | null {
+  return hardcodedStrands[`${grade}|${subject}`] || null;
+}
+
+/**
+ * Get sub-strands for a specific strand within a grade+subject.
+ */
+export function getSubStrandsForStrand(grade: string, subject: string, strandName: string): SubStrandInfo[] | null {
+  const strands = getHardcodedStrands(grade, subject);
+  if (!strands) return null;
+  const found = strands.find(s => s.name === strandName);
+  return found?.subStrands || null;
 }

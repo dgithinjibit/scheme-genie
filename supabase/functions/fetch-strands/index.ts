@@ -4,6 +4,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Hardcoded KICD strands (verified from official curriculum design PDFs)
+const hardcodedStrands: Record<string, string[]> = {
+  "Grade 3|Creative Activities": [
+    "1.0 Creating and Executing",
+    "2.0 Performing and Displaying",
+    "3.0 Appreciation",
+  ],
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -19,6 +28,18 @@ Deno.serve(async (req) => {
       );
     }
 
+    const key = `${grade}|${subject}`;
+
+    // Use hardcoded data if available
+    if (hardcodedStrands[key]) {
+      console.log(`Using hardcoded strands for ${key}`);
+      return new Response(
+        JSON.stringify({ strands: hardcodedStrands[key], source: "hardcoded" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Fall back to AI for subjects not yet hardcoded
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       return new Response(
@@ -27,7 +48,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Fetching strands for ${grade} - ${subject}`);
+    console.log(`No hardcoded data for ${key}, falling back to AI`);
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -53,24 +74,15 @@ Deno.serve(async (req) => {
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
       console.error("AI error:", aiResponse.status, errText);
-
-      if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
       return new Response(
-        JSON.stringify({ error: "Failed to fetch strands" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: aiResponse.status === 429 ? "Rate limit exceeded. Please try again." : "Failed to fetch strands" }),
+        { status: aiResponse.status === 429 ? 429 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const aiData = await aiResponse.json();
     let rawContent = aiData.choices?.[0]?.message?.content?.trim() || "";
 
-    // Strip markdown code fences
     if (rawContent.startsWith("```")) {
       rawContent = rawContent.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
     }
@@ -93,10 +105,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Found ${strands.length} strands for ${grade} ${subject}`);
-
     return new Response(
-      JSON.stringify({ strands }),
+      JSON.stringify({ strands, source: "ai" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
