@@ -6,6 +6,7 @@ export { grade1CreativeActivities, grade3CreativeActivities } from "./lower-prim
 export { grade1CRE } from "./lower-primary/cre";
 export { grade1HRE, grade2HRE, grade3HRE } from "./lower-primary/hre";
 export { grade1Kiswahili, grade2Kiswahili, grade3Kiswahili } from "./lower-primary/kiswahili";
+export { grade1Mathematics, grade2Mathematics, grade3Mathematics } from "./lower-primary/mathematics";
 export {
   grade1EnvironmentalActivities,
   grade2EnvironmentalActivities,
@@ -22,6 +23,7 @@ import { grade1CreativeActivities, grade3CreativeActivities } from "./lower-prim
 import { grade1CRE } from "./lower-primary/cre";
 import { grade1HRE, grade2HRE, grade3HRE } from "./lower-primary/hre";
 import { grade1Kiswahili, grade2Kiswahili, grade3Kiswahili } from "./lower-primary/kiswahili";
+import { grade1Mathematics, grade2Mathematics, grade3Mathematics } from "./lower-primary/mathematics";
 import {
   grade1EnvironmentalActivities,
   grade2EnvironmentalActivities,
@@ -53,6 +55,9 @@ const hardcodedStrands: Record<CurriculumKey, StrandInfo[]> = {
   "Grade 1|English Activities": grade1EnglishActivities,
   "Grade 2|English Activities": grade2EnglishActivities,
   "Grade 3|English Activities": grade3EnglishActivities,
+  "Grade 1|Mathematics": grade1Mathematics,
+  "Grade 2|Mathematics": grade2Mathematics,
+  "Grade 3|Mathematics": grade3Mathematics,
 };
 
 /**
