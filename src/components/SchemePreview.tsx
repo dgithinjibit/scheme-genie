@@ -48,8 +48,8 @@ const SchemePreview = ({ rows, subject, grade, strand }: SchemePreviewProps) => 
                   <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[120px] font-medium">{row.strand}</td>
                   <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[130px]">{row.subStrand}</td>
                   <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line min-w-[220px]">{row.specificLearningOutcome}</td>
-                  <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line min-w-[150px]">{row.keyInquiryQuestion}</td>
                   <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line min-w-[220px]">{row.learningExperiences}</td>
+                  <td className="px-3 py-2 text-xs align-top border-b border-border whitespace-pre-line min-w-[150px]">{row.keyInquiryQuestion}</td>
                   <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[150px]">{row.learningResources}</td>
                   <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[120px]">{row.assessmentMethods}</td>
                   <td className="px-3 py-2 text-xs align-top border-b border-border min-w-[60px]">{row.reflection}</td>
