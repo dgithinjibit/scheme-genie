@@ -9,26 +9,30 @@ export interface StrandInfo {
 }
 
 export interface SchemeRow {
+  week: number;
+  lesson: number;
   strand: string;
   subStrand: string;
-  learningOutcomes: string;
+  specificLearningOutcome: string;
+  keyInquiryQuestion: string;
   learningExperiences: string;
-  inquiryQuestions: string;
-  coreCompetencies: string;
-  values: string;
-  pcis: string;
+  learningResources: string;
+  assessmentMethods: string;
+  reflection: string;
 }
 
 export const columnHeaders = {
   en: [
-    "Strand", "Sub-Strand (Lessons)", "Specific Learning Outcomes",
-    "Suggested Learning Experiences", "Key Inquiry Question(s)",
-    "Core Competencies", "Values", "PCIs",
+    "WK", "LSN", "Strand", "Sub-Strand",
+    "Specific Learning Outcome", "Key Inquiry Question",
+    "Learning Experiences", "Learning Resources",
+    "Assessment Methods", "Refl",
   ],
   sw: [
-    "Mada", "Mada Ndogo (Masomo)", "Matokeo ya Ujifunzaji",
-    "Shughuli za Ujifunzaji", "Maswali ya Uchunguzi",
-    "Stadi Kuu", "Maadili", "Masuala ya Kisasa",
+    "WK", "LSN", "Mada", "Mada Ndogo",
+    "Matokeo ya Ujifunzaji", "Swali la Uchunguzi",
+    "Shughuli za Ujifunzaji", "Rasilimali za Kujifunza",
+    "Mbinu za Tathmini", "Tafak",
   ],
 };
 

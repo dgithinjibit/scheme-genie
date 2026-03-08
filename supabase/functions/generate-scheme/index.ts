@@ -5,14 +5,16 @@ const corsHeaders = {
 };
 
 interface SchemeRow {
+  week: number;
+  lesson: number;
   strand: string;
   subStrand: string;
-  learningOutcomes: string;
+  specificLearningOutcome: string;
+  keyInquiryQuestion: string;
   learningExperiences: string;
-  inquiryQuestions: string;
-  coreCompetencies: string;
-  values: string;
-  pcis: string;
+  learningResources: string;
+  assessmentMethods: string;
+  reflection: string;
 }
 
 interface SubStrandInfo {
@@ -48,54 +50,72 @@ Deno.serve(async (req) => {
 
     const isSw = kiswahiliSubjects.includes(subject);
 
-    // Build sub-strand context if available
+    // Build sub-strand context
     let subStrandContext = "";
+    let totalLessons = 0;
     if (subStrands && Array.isArray(subStrands) && subStrands.length > 0) {
+      totalLessons = (subStrands as SubStrandInfo[]).reduce((sum, ss) => sum + ss.lessons, 0);
       subStrandContext = `\n\nThe EXACT official KICD sub-strands for this strand are:\n${
         (subStrands as SubStrandInfo[]).map(ss => `- "${ss.name}" (${ss.lessons} lessons)`).join("\n")
-      }\n\nCRITICAL RULES:
-1. Generate EXACTLY one row per sub-strand listed above — no more, no less.
-2. The "subStrand" field MUST use the EXACT sub-strand name from the list above, followed by the lesson count in parentheses, e.g. "2.1 Rounds (18 lessons)".
-3. The "strand" field MUST be exactly "${strand}" for every row.
-4. Content must match the KICD CBC curriculum design for ${grade} ${subject} as closely as possible.`;
+      }\n\nTotal lessons across all sub-strands: ${totalLessons}
+
+CRITICAL RULES:
+1. Generate EXACTLY one row per LESSON — NOT one row per sub-strand.
+2. For a sub-strand with N lessons, generate N separate rows, each representing one lesson.
+3. Distribute the learning outcomes across lessons progressively — early lessons introduce concepts, later lessons deepen and apply.
+4. Each lesson row should have a FOCUSED, SPECIFIC outcome for that single lesson (not the whole sub-strand outcome).
+5. The "week" field should increment logically (multiple lessons per week is fine, use lesson numbers 1,2,3 etc within each week).
+6. The "strand" field MUST be exactly "${strand}" for every row.
+7. The "subStrand" field MUST use the EXACT sub-strand name from the list above.`;
     }
 
     const systemPrompt = isSw
-      ? `Wewe ni mtaalamu wa mitaala ya CBC Kenya (KICD). Tengeneza mpango wa kazi kwa muundo sahihi wa CBC.
-Jibu LAZIMA liwe JSON array ya objects zenye fields hizi hasa:
+      ? `Wewe ni mwalimu mtaalamu wa CBC Kenya. Tengeneza mpango wa kazi (scheme of work) kwa muundo wa masomo ya kila somo moja moja.
+
+Jibu LAZIMA liwe JSON array ya objects zenye fields hizi:
+- week (number): Nambari ya wiki
+- lesson (number): Nambari ya somo ndani ya wiki
 - strand (string): Mada kuu
-- subStrand (string): Mada ndogo na idadi ya masomo k.m. "2.1 Rounds (masomo 18)"
-- learningOutcomes (string): Matokeo ya ujifunzaji - tumia "• " kwa kila tokeo
-- learningExperiences (string): Shughuli za ujifunzaji - tumia "• " kwa kila shughuli  
-- inquiryQuestions (string): Maswali ya uchunguzi - tumia "• " kwa kila swali
-- coreCompetencies (string): Stadi kuu zilizofundishwa
-- values (string): Maadili yaliyofundishwa
-- pcis (string): Masuala ya kisasa yanayohusiana
+- subStrand (string): Mada ndogo
+- specificLearningOutcome (string): Matokeo mahususi ya somo hilo moja — "Mwishoni mwa somo, mwanafunzi aweze..."
+- keyInquiryQuestion (string): Swali moja la uchunguzi kwa somo hilo
+- learningExperiences (string): Shughuli za ujifunzaji — "Mwanafunzi anaongozwa..." tumia "• " kwa kila shughuli
+- learningResources (string): Rasilimali za kujifunza
+- assessmentMethods (string): Mbinu za tathmini k.m. maswali ya mdomo, maswali ya maandishi
+- reflection (string): Acha tupu ""
 
-Jibu LAZIMA liwe JSON array pekee, bila maandishi mengine.`
-      : `You are a Kenyan CBC curriculum expert and experienced teacher. Your job is to CREATE ORIGINAL, DETAILED teaching content for schemes of work — NOT to copy curriculum design documents.
+Jibu LAZIMA liwe JSON array pekee.`
+      : `You are an experienced Kenyan CBC teacher creating a SCHEME OF WORK — a weekly lesson-by-lesson teaching plan.
 
-For each sub-strand, you must GENERATE:
-- learningOutcomes: Write 3-5 specific, measurable outcomes starting with "By the end of the sub-strand, the learner should be able to:" then list as a), b), c) etc. These should describe what learners can DO after the lessons.
-- learningExperiences: Write 4-6 detailed, practical classroom activities starting with "The learner is guided to:" then list using "• ". Include specific hands-on activities, group work, demonstrations, and practice exercises that a teacher would actually use in class.
-- inquiryQuestions: Write 2-3 thought-provoking questions that guide learner exploration of the topic.
-- coreCompetencies: List relevant CBC core competencies (e.g. Communication and Collaboration, Critical Thinking, Creativity and Imagination, Self-efficacy, Digital Literacy)
-- values: List relevant values (e.g. Unity, Responsibility, Respect, Patriotism, Love, Peace)  
-- pcis: List Pertinent and Contemporary Issues (e.g. Safety, Health, Life Skills, Citizenship, Environmental awareness)
+IMPORTANT: A scheme of work is NOT the curriculum design. The curriculum design gives aggregated outcomes per sub-strand. YOUR job is to BREAK THOSE DOWN into individual lesson plans, distributing content progressively across lessons.
 
-Your response MUST be a JSON array of objects with exactly these fields: strand, subStrand, learningOutcomes, learningExperiences, inquiryQuestions, coreCompetencies, values, pcis.
-Your response MUST be ONLY a valid JSON array, no other text.`;
+For each INDIVIDUAL LESSON row, generate:
+- week (number): Week number (starting from 1)
+- lesson (number): Lesson number within that week (1, 2, or 3)
+- strand (string): The strand name
+- subStrand (string): The sub-strand name
+- specificLearningOutcome (string): What the learner should achieve in THIS SINGLE LESSON. Start with "By the end of the lesson the learner should be able to:" then list 2-3 specific, focused outcomes for that one lesson only.
+- keyInquiryQuestion (string): ONE thought-provoking question for this specific lesson
+- learningExperiences (string): 3-5 practical activities for THIS lesson. Start with "The learner is guided to:" then use bullet points. Include hands-on activities, discussions, digital device usage where appropriate.
+- learningResources (string): Specific resources needed (e.g., "Environmental Activities Curriculum design grade 3, Our lives today grade 3, art supplies, digital devices")
+- assessmentMethods (string): How to assess this lesson (e.g., "oral questions, written questions, observation")
+- reflection (string): Leave as empty string ""
 
-    const userPrompt = `Generate a CBC-compliant scheme of work for:
+Your response MUST be ONLY a valid JSON array of objects. No other text.`;
+
+    const userPrompt = `Generate a CBC scheme of work (lesson-by-lesson) for:
 - Grade: ${grade}
-- Subject: ${subject}
+- Subject: ${subject}  
 - Strand: ${strand}
 ${subStrandContext}
-${context ? `\nAdditional context from the teacher: ${context}` : ""}
+${context ? `\nLearning resources available: ${context}` : ""}
 
-Return ONLY a valid JSON array with one object per sub-strand.`;
+IMPORTANT: Generate one row per LESSON, not per sub-strand. Each sub-strand with N lessons needs N separate rows.
+Distribute outcomes progressively across lessons. Early lessons = introduce/identify. Middle = practice/discuss. Later = apply/create/advocate.
 
-    console.log(`Generating scheme for ${grade} ${subject} - ${strand} (${subStrands?.length || "unknown"} sub-strands)`);
+Return ONLY a valid JSON array.`;
+
+    console.log(`Generating scheme for ${grade} ${subject} - ${strand} (${totalLessons} total lessons across ${subStrands?.length || "unknown"} sub-strands)`);
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -162,7 +182,7 @@ Return ONLY a valid JSON array with one object per sub-strand.`;
       );
     }
 
-    console.log(`Generated ${rows.length} scheme rows successfully`);
+    console.log(`Generated ${rows.length} lesson rows successfully`);
 
     return new Response(
       JSON.stringify({ rows, source: subStrands ? "hardcoded_context" : "ai_knowledge" }),
