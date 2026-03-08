@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { grades, getSubjectsForGrade, type SchemeRow } from "@/data/curriculum";
+import { grades, getSubjectsForGrade, getHardcodedStrands, getSubStrandsForStrand, type SchemeRow } from "@/data/curriculum";
 import SchemePreview from "./SchemePreview";
 import { FileText, Download, Save, Loader2, Sparkles } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
