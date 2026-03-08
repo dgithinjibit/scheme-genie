@@ -188,21 +188,31 @@ describe("Guardrail 3: SLO Format Validation", () => {
   });
 });
 
-describe("Guardrail 4: Learning Experiences Format", () => {
-  it("returns placeholder for empty experiences", () => {
+describe("Guardrail 4: Learning Experiences Format (knowledge + skills only)", () => {
+  it("returns placeholder with 2 activities for empty experiences", () => {
     const result = validateAndFixExperiences("");
     expect(result).toContain("Learner is guided to:");
     expect(result).toContain("a)");
+    expect(result).toContain("b)");
+    expect(result).not.toContain("c)");
   });
 
   it("adds prefix if missing", () => {
-    const exp = "a) Discuss topics\nb) Draw items\nc) Share findings";
+    const exp = "a) Discuss topics\nb) Draw items";
     const result = validateAndFixExperiences(exp);
     expect(result).toContain("Learner is guided to:");
   });
 
-  it("leaves correct format unchanged", () => {
-    const exp = "Learner is guided to:\na) Discuss\nb) Draw\nc) Share";
+  it("strips c) attitude activity if AI included it", () => {
+    const exp = "Learner is guided to:\na) Discuss animals\nb) Draw animals\nc) Appreciate wildlife";
+    const result = validateAndFixExperiences(exp);
+    expect(result).toContain("a) Discuss animals");
+    expect(result).toContain("b) Draw animals");
+    expect(result).not.toContain("c)");
+  });
+
+  it("leaves correct 2-activity format unchanged", () => {
+    const exp = "Learner is guided to:\na) Discuss\nb) Draw";
     expect(validateAndFixExperiences(exp)).toBe(exp);
   });
 });
