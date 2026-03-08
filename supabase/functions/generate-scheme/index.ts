@@ -247,7 +247,7 @@ function validateAndSanitizeRows(
   return final;
 }
 
-const MAX_LESSONS_PER_BATCH = 8;
+const MAX_LESSONS_PER_BATCH = 5;
 
 async function generateBatch(
   LOVABLE_API_KEY: string,
