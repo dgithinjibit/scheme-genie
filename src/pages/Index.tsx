@@ -1,9 +1,5 @@
-import { useState } from "react";
 import SchemeGeneratorDialog from "@/components/SchemeGeneratorDialog";
-import { BookOpen, CheckCircle, FileDown, Globe, Database, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { BookOpen, CheckCircle, FileDown, Globe } from "lucide-react";
 
 const features = [
   {
