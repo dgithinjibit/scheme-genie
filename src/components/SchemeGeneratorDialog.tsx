@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { grades, subjects, strandsBySubject, type SchemeRow } from "@/data/curriculum";
+import { grades, getSubjectsForGrade, type SchemeRow } from "@/data/curriculum";
 import SchemePreview from "./SchemePreview";
 import { FileText, Download, Save, Loader2, Sparkles } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,8 +33,44 @@ const SchemeGeneratorDialog = () => {
   const [context, setContext] = useState("");
   const [loading, setLoading] = useState(false);
   const [generatedRows, setGeneratedRows] = useState<SchemeRow[] | null>(null);
+  const [availableStrands, setAvailableStrands] = useState<string[]>([]);
+  const [loadingStrands, setLoadingStrands] = useState(false);
 
-  const availableStrands = subject ? strandsBySubject[subject] || [] : [];
+  const subjects = grade ? getSubjectsForGrade(grade) : [];
+
+  // Fetch strands dynamically when grade + subject are selected
+  useEffect(() => {
+    if (!grade || !subject) {
+      setAvailableStrands([]);
+      return;
+    }
+
+    const fetchStrands = async () => {
+      setLoadingStrands(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("fetch-strands", {
+          body: { grade, subject },
+        });
+
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+
+        setAvailableStrands(data.strands || []);
+      } catch (err) {
+        console.error("Failed to fetch strands:", err);
+        toast({
+          title: "Could not load strands",
+          description: "Please try selecting the subject again.",
+          variant: "destructive",
+        });
+        setAvailableStrands([]);
+      } finally {
+        setLoadingStrands(false);
+      }
+    };
+
+    fetchStrands();
+  }, [grade, subject]);
 
   const resetForm = () => {
     setStep(1);
@@ -44,6 +80,7 @@ const SchemeGeneratorDialog = () => {
     setContext("");
     setGeneratedRows(null);
     setLoading(false);
+    setAvailableStrands([]);
   };
 
   const handleGenerate = async () => {
@@ -146,7 +183,7 @@ const SchemeGeneratorDialog = () => {
             {step === 1 && (
               <div className="space-y-4 py-2">
                 <p className="text-sm text-muted-foreground">Select the grade level for this scheme.</p>
-                <Select value={grade} onValueChange={(v) => { setGrade(v); setStep(2); }}>
+                <Select value={grade} onValueChange={(v) => { setGrade(v); setSubject(""); setStrand(""); setStep(2); }}>
                   <SelectTrigger><SelectValue placeholder="Select Grade" /></SelectTrigger>
                   <SelectContent>
                     {grades.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
@@ -170,13 +207,24 @@ const SchemeGeneratorDialog = () => {
 
             {step === 3 && (
               <div className="space-y-4 py-2">
-                <p className="text-sm text-muted-foreground">Select a strand for {subject}.</p>
-                <Select value={strand} onValueChange={(v) => { setStrand(v); setStep(4); }}>
-                  <SelectTrigger><SelectValue placeholder="Select Strand" /></SelectTrigger>
-                  <SelectContent>
-                    {availableStrands.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <p className="text-sm text-muted-foreground">
+                  {loadingStrands
+                    ? `Loading KICD strands for ${subject}...`
+                    : `Select a strand for ${subject}.`}
+                </p>
+                {loadingStrands ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Fetching strands from KICD curriculum...
+                  </div>
+                ) : (
+                  <Select value={strand} onValueChange={(v) => { setStrand(v); setStep(4); }}>
+                    <SelectTrigger><SelectValue placeholder="Select Strand" /></SelectTrigger>
+                    <SelectContent>
+                      {availableStrands.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                )}
                 <Button variant="ghost" size="sm" onClick={() => { setStep(2); setSubject(""); }}>← Back</Button>
               </div>
             )}
