@@ -30,6 +30,7 @@ const SchemeGeneratorDialog = () => {
   const [grade, setGrade] = useState("");
   const [subject, setSubject] = useState("");
   const [strand, setStrand] = useState("");
+  const [subStrand, setSubStrand] = useState("");
   const [context, setContext] = useState("");
   const [loading, setLoading] = useState(false);
   const [generatedRows, setGeneratedRows] = useState<SchemeRow[] | null>(null);
