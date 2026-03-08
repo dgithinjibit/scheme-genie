@@ -86,6 +86,7 @@ async function generateForSubStrand(
   context: string,
   isSw: boolean,
   weekStart: number,
+  lessonsPerWeek: number,
 ): Promise<{ rows: SchemeRow[]; weeksUsed: number }> {
   const exampleRows = `EXAMPLE (Environmental Activities, "Our living environment" sub-strand):
 Row 1: week=1, lesson=1, outcome="* identify locally available materials used as beddings\\n* draw items used as beddings", question="What are beddings?", experiences="* identify locally available materials used as beddings\\n* draw items used as beddings"
