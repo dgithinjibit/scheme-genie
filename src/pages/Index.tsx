@@ -25,25 +25,6 @@ const features = [
 ];
 
 const Index = () => {
-  const { toast } = useToast();
-  const [scraping, setScraping] = useState(false);
-
-  const handleScrapeSchemes = async () => {
-    setScraping(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("scrape-schemes");
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      const summary = data.results?.map((r: any) => `${r.site}: ${r.inserted} new`).join(", ") || "Done";
-      toast({ title: "Scheme Index Updated", description: summary });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Scraping failed";
-      toast({ title: "Scrape Failed", description: msg, variant: "destructive" });
-    } finally {
-      setScraping(false);
-    }
-  };
-
   return (
     <div className="min-h-screen flex flex-col">
       {/* Accent bar */}
