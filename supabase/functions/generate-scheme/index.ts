@@ -131,13 +131,17 @@ RULES:
    - Knowledge (Cognitive): Use MEASURABLE verbs ONLY — Define, List, State, Name, Label, Recall, Identify, Describe, Explain, Summarize, Distinguish, Illustrate. NEVER use "know", "understand", or "be aware of".
    - Skills (Psychomotor): Use verbs requiring a TANGIBLE output — Execute, Perform, Construct, Demonstrate, Draw, Write, Sing, Read, Calculate, Measure, Sketch, Solve, Model, Trace, Cut, Colour, Paint. NEVER use "learn to...".
    - Attitudes/Values (Affective): Link to OBSERVABLE behaviour — Appreciate, Respect, Value, Practise, Uphold, Collaborate, Persist, Commit, Adhere, Advocate. NEVER use "have a positive attitude".
-   Format: "By the end of the lesson the learner should be able to:" then bullet points with "* " prefix.
+   EXACT FORMAT (use lettered bullets):
+   "By the end of the lesson, the learner should be able to:\\na) [first outcome]\\nb) [second outcome]\\nc) [third outcome]"
 4. **Key Inquiry Question**: ${hasOfficialData ? 'Use the official KICD question provided, or create a closely related child-friendly variant per lesson.' : 'ONE open-ended question to stimulate curiosity and critical thinking.'} Must be age-appropriate.
-5. **Learning Experiences**: ${hasOfficialData ? 'Select 2-4 STUDENT-CENTERED activities FROM the official suggested experiences below. Distribute them across lessons so all are covered.' : '2-4 student-centered activities (observing, discussing, drawing, role-playing, experimenting) with "* " prefix.'} Activities must account for diverse learning environments.
+5. **Learning Experiences**: ${hasOfficialData ? 'Select 2-4 STUDENT-CENTERED activities FROM the official suggested experiences below. Distribute them across lessons so all are covered.' : '2-4 student-centered activities (observing, discussing, drawing, role-playing, experimenting).'}
+   EXACT FORMAT (use lettered bullets):
+   "a) [first activity]\\nb) [second activity]\\nc) [third activity]"
+   Activities must account for diverse learning environments.
 6. **Learning Resources**: "${subject} Curriculum Design ${grade.toLowerCase()}" plus contextual resources (digital devices, local environment, charts, textbooks, realia). Include locally available materials.
 7. **Assessment**: Methods to evaluate learning — "oral questions, observation" or add "written exercise, portfolio, peer assessment" as appropriate. Must match the learning outcome.
 8. **Reflection**: always "".
-9. Week numbering starts from ${weekStart}. Fit exactly ${lessonsPerWeek} lessons per week. Lesson numbers 1, 2, 3... up to ${lessonsPerWeek} within each week.
+9. Week numbering starts from ${weekStart}. Fit exactly ${lessonsPerWeek} lessons per week. Lesson numbers RESET each week: 1, 2, 3... up to ${lessonsPerWeek}, then back to 1 for the next week. Example: Week 1 has lessons 1,2,3,4,5; Week 2 has lessons 1,2,3,4,5 — NOT lesson 6,7,8.
 10. Progress gradually across ${totalLessons} total lessons: INTRODUCE concepts → PRACTISE skills → APPLY in context → REVIEW and assess. Each lesson should build on the previous one.${officialContext}
 
 Return ONLY a valid JSON array of ${batchLessons} objects. No other text.`;
