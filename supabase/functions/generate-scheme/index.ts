@@ -312,7 +312,6 @@ Deno.serve(async (req) => {
             const { rows, weeksUsed } = await generateForSubStrand(
               LOVABLE_API_KEY, grade, subject, strand, ss, enrichedContext, isSw, currentWeek, lessonsPerWeek
             );
-          );
           allRows.push(...rows);
           currentWeek += weeksUsed;
         } catch (e) {
