@@ -77,31 +77,28 @@ function extractJsonArray(raw: string): SchemeRow[] {
   throw new Error("No parseable JSON found in response");
 }
 
-async function generateForSubStrand(
+const MAX_LESSONS_PER_BATCH = 8;
+
+async function generateBatch(
   LOVABLE_API_KEY: string,
   grade: string,
   subject: string,
   strand: string,
-  subStrand: SubStrandInfo,
+  subStrandName: string,
+  batchLessons: number,
+  totalLessons: number,
   context: string,
   isSw: boolean,
   weekStart: number,
   lessonsPerWeek: number,
-): Promise<{ rows: SchemeRow[]; weeksUsed: number }> {
-  const exampleRows = `EXAMPLE (Environmental Activities, "Our living environment" sub-strand):
-Row 1: week=1, lesson=1, outcome="* identify locally available materials used as beddings\\n* draw items used as beddings", question="What are beddings?", experiences="* identify locally available materials used as beddings\\n* draw items used as beddings"
-Row 2: week=1, lesson=2, outcome="* identify locally available materials used as beddings", question="Name items that are used as beddings?", experiences="* discuss locally available materials used as beddings\\n* use digital devices to search for items used as beddings"
-
-PATTERN: Each lesson is SIMPLE, SHORT outcomes (1-3 bullets), 2-4 activities, one child-friendly question.`;
-
+  batchIndex: number,
+): Promise<SchemeRow[]> {
   const systemPrompt = isSw
     ? `Wewe ni mwalimu mtaalamu wa CBC Kenya. Tengeneza mpango wa kazi kwa mada ndogo moja. Kila somo liwe RAHISI na FUPI. Jibu LAZIMA liwe JSON array pekee.`
-    : `You are an experienced Kenyan CBC primary school teacher creating a SCHEME OF WORK for ONE sub-strand only.
-
-${exampleRows}
+    : `You are an experienced Kenyan CBC primary school teacher creating a SCHEME OF WORK.
 
 RULES:
-1. Generate EXACTLY ${subStrand.lessons} lesson rows for this sub-strand.
+1. Generate EXACTLY ${batchLessons} lesson rows.
 2. Keep everything SIMPLE and age-appropriate for ${grade} children.
 3. Outcomes: "By the end of the lesson the learner should be able to:" then 1-3 SHORT bullet points with "* " prefix.
 4. Key Inquiry Question: ONE short child-friendly question.
@@ -109,22 +106,23 @@ RULES:
 6. Learning Resources: "${subject} Curriculum design ${grade.toLowerCase()}" plus textbooks.
 7. Assessment: "oral questions, written questions" or add "observation".
 8. Reflection: always "".
-9. Week numbering starts from ${weekStart}. Fit exactly ${lessonsPerWeek} lessons per week (this subject has ${lessonsPerWeek} lessons/week per KICD allocation). Lesson numbers 1, 2, 3... up to ${lessonsPerWeek} within each week.
+9. Week numbering starts from ${weekStart}. Fit exactly ${lessonsPerWeek} lessons per week. Lesson numbers 1, 2, 3... up to ${lessonsPerWeek} within each week.
 10. Progress gradually: introduce → practice → apply → review.
 
-Return ONLY a valid JSON array of ${subStrand.lessons} objects. No other text.`;
+Return ONLY a valid JSON array of ${batchLessons} objects. No other text.`;
 
-  const userPrompt = `Generate ${subStrand.lessons} lesson rows for:
+  const batchDesc = batchIndex > 0 ? ` (continuing from lesson ${batchIndex * MAX_LESSONS_PER_BATCH + 1})` : "";
+  const userPrompt = `Generate ${batchLessons} lesson rows for:
 - Grade: ${grade}, Subject: ${subject}
 - Strand: ${strand}
-- Sub-strand: ${subStrand.name} (${subStrand.lessons} lessons)
+- Sub-strand: ${subStrandName} (${totalLessons} total lessons, this batch: ${batchLessons})${batchDesc}
 ${context ? `- Resources: ${context}` : ""}
 
-Each row needs: week, lesson, strand, subStrand, specificLearningOutcome, keyInquiryQuestion, learningExperiences, learningResources, assessmentMethods, reflection.
-The "strand" field = "${strand}", the "subStrand" field = "${subStrand.name}".
+Each row: week, lesson, strand, subStrand, specificLearningOutcome, keyInquiryQuestion, learningExperiences, learningResources, assessmentMethods, reflection.
+The "strand" field = "${strand}", the "subStrand" field = "${subStrandName}".
 Start week numbering from ${weekStart}.
 
-Return ONLY a JSON array of exactly ${subStrand.lessons} objects.`;
+Return ONLY a JSON array of exactly ${batchLessons} objects.`;
 
   const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -143,26 +141,60 @@ Return ONLY a JSON array of exactly ${subStrand.lessons} objects.`;
 
   if (!aiResponse.ok) {
     const errorText = await aiResponse.text();
-    console.error(`AI error for ${subStrand.name}:`, aiResponse.status, errorText);
-    if (aiResponse.status === 429) {
-      throw new Error("RATE_LIMIT");
-    }
-    throw new Error(`AI generation failed for ${subStrand.name}`);
+    console.error(`AI error for ${subStrandName} batch ${batchIndex}:`, aiResponse.status, errorText);
+    if (aiResponse.status === 429) throw new Error("RATE_LIMIT");
+    throw new Error(`AI generation failed for ${subStrandName} batch ${batchIndex}`);
   }
 
   const aiData = await aiResponse.json();
   const rawContent = aiData.choices?.[0]?.message?.content;
-
-  if (!rawContent) {
-    throw new Error(`AI returned empty response for ${subStrand.name}`);
-  }
+  if (!rawContent) throw new Error(`AI returned empty response for ${subStrandName} batch ${batchIndex}`);
 
   const rows = extractJsonArray(rawContent);
-  console.log(`Generated ${rows.length} rows for ${subStrand.name} (expected ${subStrand.lessons})`);
+  console.log(`Batch ${batchIndex}: generated ${rows.length} rows for ${subStrandName} (expected ${batchLessons})`);
+  return rows;
+}
 
-  // Calculate weeks used
-  const maxWeek = rows.reduce((max, r) => Math.max(max, r.week || 0), weekStart);
-  return { rows, weeksUsed: maxWeek - weekStart + 1 };
+async function generateForSubStrand(
+  LOVABLE_API_KEY: string,
+  grade: string,
+  subject: string,
+  strand: string,
+  subStrand: SubStrandInfo,
+  context: string,
+  isSw: boolean,
+  weekStart: number,
+  lessonsPerWeek: number,
+): Promise<{ rows: SchemeRow[]; weeksUsed: number }> {
+  const allRows: SchemeRow[] = [];
+  let remaining = subStrand.lessons;
+  let batchIndex = 0;
+  let currentWeek = weekStart;
+
+  while (remaining > 0) {
+    const batchSize = Math.min(remaining, MAX_LESSONS_PER_BATCH);
+    const rows = await generateBatch(
+      LOVABLE_API_KEY, grade, subject, strand, subStrand.name,
+      batchSize, subStrand.lessons, context, isSw, currentWeek, lessonsPerWeek, batchIndex
+    );
+    allRows.push(...rows);
+
+    // Advance week based on rows generated
+    const maxWeek = rows.reduce((max, r) => Math.max(max, r.week || 0), currentWeek);
+    // Check if last row fills the week
+    const lastRow = rows[rows.length - 1];
+    if (lastRow && lastRow.lesson >= lessonsPerWeek) {
+      currentWeek = maxWeek + 1;
+    } else {
+      currentWeek = maxWeek;
+    }
+
+    remaining -= batchSize;
+    batchIndex++;
+  }
+
+  const maxWeek = allRows.reduce((max, r) => Math.max(max, r.week || 0), weekStart);
+  return { rows: allRows, weeksUsed: maxWeek - weekStart + 1 };
 }
 
 Deno.serve(async (req) => {
