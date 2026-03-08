@@ -106,6 +106,42 @@ export function getSubjectsForGrade(grade: string): string[] {
 type CurriculumKey = string; // "Grade X|Subject"
 
 const hardcodedStrands: Record<CurriculumKey, StrandInfo[]> = {
+  // ─── Grade 1 Creative Activities (from KICD Curriculum Design 2024, pp.13) ───
+  "Grade 1|Creative Activities": [
+    {
+      name: "1.0 Creating and Executing",
+      subStrands: [
+        { name: "1.1 Jumping", lessons: 14 },
+        { name: "1.2 Rhythm", lessons: 14 },
+        { name: "1.3 Drawing", lessons: 14 },
+        { name: "1.4 Stretching", lessons: 14 },
+        { name: "1.5 Painting and Colouring", lessons: 14 },
+        { name: "1.6 Melody", lessons: 14 },
+        { name: "1.7 Pattern Making", lessons: 10 },
+      ],
+    },
+    {
+      name: "2.0 Performing and Displaying",
+      subStrands: [
+        { name: "2.1 Singing Games - Kenyan Style", lessons: 13 },
+        { name: "2.2 Throwing and Catching", lessons: 14 },
+        { name: "2.3 Paper Craft", lessons: 10 },
+        { name: "2.4 Log Roll and T Balances", lessons: 14 },
+        { name: "2.5 Songs - Action Songs", lessons: 13 },
+        { name: "2.6 Modelling", lessons: 14 },
+        { name: "2.7 Percussion Musical Instruments", lessons: 10 },
+      ],
+    },
+    {
+      name: "3.0 Appreciation",
+      subStrands: [
+        { name: "3.1 Musical Sounds", lessons: 14 },
+        { name: "3.2 Water Safety Awareness", lessons: 14 },
+      ],
+    },
+  ],
+
+  // ─── Grade 3 Creative Activities (from KICD Curriculum Design 2024) ───
   "Grade 3|Creative Activities": [
     {
       name: "1.0 Creating and Executing",
