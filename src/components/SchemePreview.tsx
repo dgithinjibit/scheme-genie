@@ -26,7 +26,7 @@ const SchemePreview = ({ rows, subject, grade, strand }: SchemePreviewProps) => 
       </div>
 
       <div className="w-full rounded-lg border border-border">
-        <div className="overflow-x-scroll overflow-y-hidden pb-2">
+        <div className="overflow-x-auto overflow-y-hidden pb-2 scheme-table-scroll">
           <table className="min-w-[1400px] w-full text-sm">
             <thead>
               <tr>
