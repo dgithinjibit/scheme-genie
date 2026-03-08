@@ -36,7 +36,8 @@ const SchemeGeneratorDialog = () => {
   const [availableStrands, setAvailableStrands] = useState<string[]>([]);
   const [loadingStrands, setLoadingStrands] = useState(false);
 
-  const subjects = grade ? getSubjectsForGrade(grade) : [];
+  // TODO: Remove test filter — temporarily locked for testing
+  const subjects = ["Creative Activities"];
 
   // Fetch strands dynamically when grade + subject are selected
   useEffect(() => {
@@ -197,7 +198,7 @@ const SchemeGeneratorDialog = () => {
                 <Select value={grade} onValueChange={(v) => { setGrade(v); setSubject(""); setStrand(""); setStep(2); }}>
                   <SelectTrigger><SelectValue placeholder="Select Grade" /></SelectTrigger>
                   <SelectContent>
-                    {grades.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                    {["Grade 3"].map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -232,7 +233,7 @@ const SchemeGeneratorDialog = () => {
                   <Select value={strand} onValueChange={(v) => { setStrand(v); setStep(4); }}>
                     <SelectTrigger><SelectValue placeholder="Select Strand" /></SelectTrigger>
                     <SelectContent>
-                      {availableStrands.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      {["2.0 Performing and Displaying"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 )}
