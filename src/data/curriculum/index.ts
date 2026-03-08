@@ -35,6 +35,7 @@ import {
   grade2EnglishActivities,
   grade3EnglishActivities,
 } from "./lower-primary/english-activities";
+import { grade6Agriculture } from "./upper-primary/agriculture";
 
 // ─── Strand registry keyed by "Grade X|Subject" ───
 
