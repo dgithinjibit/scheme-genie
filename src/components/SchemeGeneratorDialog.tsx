@@ -38,8 +38,7 @@ const SchemeGeneratorDialog = () => {
   const [availableSubStrands, setAvailableSubStrands] = useState<string[]>([]);
   const [loadingStrands, setLoadingStrands] = useState(false);
 
-  // TODO: Remove test filter — temporarily locked for testing
-  const subjects = ["Creative Activities"];
+  const subjects = getSubjectsForGrade(grade);
 
   // Fetch strands dynamically when grade + subject are selected
   useEffect(() => {
