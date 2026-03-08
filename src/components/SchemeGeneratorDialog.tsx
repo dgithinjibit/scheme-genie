@@ -122,7 +122,7 @@ const SchemeGeneratorDialog = () => {
       const selectedSub = allSubs?.find(s => s.name === subStrand);
       const subStrands = selectedSub ? [selectedSub] : [];
       
-      const lessonsPerWeek = getLessonsPerWeek(subject);
+      const lessonsPerWeek = getLessonsPerWeek(grade, subject);
       const { data, error } = await supabase.functions.invoke("generate-scheme", {
         body: { grade, subject, strand, context, subStrands, lessonsPerWeek },
       });

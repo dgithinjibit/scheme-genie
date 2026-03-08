@@ -38,9 +38,10 @@ export const columnHeaders = {
 
 export const kiswahiliSubjects = ["Kiswahili"];
 
-// Official KICD lesson allocation per week (Lower Primary shown in curriculum design docs)
-const lessonsPerWeekMap: Record<string, number> = {
-  "Indigenous Language Activities": 2,
+// Official KICD lesson allocation per week by grade level
+// Lower Primary (Grades 1-3)
+const lowerPrimaryLessons: Record<string, number> = {
+  "Indigenous Language": 2,
   "Kiswahili": 4,
   "English Activities": 5,
   "Mathematics": 5,
@@ -49,8 +50,42 @@ const lessonsPerWeekMap: Record<string, number> = {
   "Creative Activities": 7,
 };
 
-export function getLessonsPerWeek(subject: string): number {
-  return lessonsPerWeekMap[subject] || 5;
+// Upper Primary (Grades 4-6)
+const upperPrimaryLessons: Record<string, number> = {
+  "English": 5,
+  "Kiswahili": 4,
+  "Mathematics": 5,
+  "Science & Technology": 4,
+  "Social Studies": 3,
+  "Agriculture": 2,
+  "Creative Arts": 3,
+  "CRE": 3, "HRE": 3, "IRE": 3,
+  "Arabic": 2, "French": 2, "German": 2, "Mandarin": 2,
+  "Indigenous Language": 2,
+};
+
+// Junior Secondary (Grades 7-9)
+const juniorSecondaryLessons: Record<string, number> = {
+  "English": 5,
+  "Kiswahili": 4,
+  "Mathematics": 5,
+  "Integrated Science": 4,
+  "Social Studies": 3,
+  "Agriculture": 2,
+  "Creative Arts": 3,
+  "Pre-Technical Studies": 3,
+  "CRE": 3, "HRE": 3, "IRE": 3,
+  "Arabic": 2, "French": 2, "German": 2, "Mandarin": 2,
+  "Indigenous Language": 2,
+};
+
+export function getLessonsPerWeek(grade: string, subject: string): number {
+  const num = parseInt(grade.replace("Grade ", ""));
+  let map: Record<string, number>;
+  if (num >= 1 && num <= 3) map = lowerPrimaryLessons;
+  else if (num >= 4 && num <= 6) map = upperPrimaryLessons;
+  else map = juniorSecondaryLessons;
+  return map[subject] || 5;
 }
 
 export const grades = [
