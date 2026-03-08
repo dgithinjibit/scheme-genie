@@ -198,7 +198,7 @@ const SchemeGeneratorDialog = () => {
                 <Select value={grade} onValueChange={(v) => { setGrade(v); setSubject(""); setStrand(""); setStep(2); }}>
                   <SelectTrigger><SelectValue placeholder="Select Grade" /></SelectTrigger>
                   <SelectContent>
-                    {grades.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                    {["Grade 3"].map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
