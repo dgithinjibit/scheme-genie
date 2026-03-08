@@ -237,6 +237,39 @@ async function generateForSubStrand(
   return { rows: allRows, weeksUsed: maxWeek - weekStart + 1 };
 }
 
+// Fetch reference schemes from database to enhance AI context
+async function fetchReferenceContext(grade: string, subject: string, strand: string): Promise<string> {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !supabaseKey) return "";
+
+    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Search for matching references by grade and subject
+    const { data: refs } = await supabase
+      .from("scheme_references")
+      .select("title, description, content_snippet, source_site")
+      .or(`grade.ilike.%${grade}%,subject.ilike.%${subject}%`)
+      .limit(5);
+
+    if (!refs || refs.length === 0) return "";
+
+    let refContext = "\n\nREFERENCE SCHEMES FROM PROFESSIONAL SOURCES (use as inspiration for tone, structure, and content depth):\n";
+    for (const ref of refs) {
+      refContext += `\n--- From ${ref.source_site} ---\n`;
+      if (ref.title) refContext += `Title: ${ref.title}\n`;
+      if (ref.description) refContext += `Description: ${ref.description}\n`;
+      if (ref.content_snippet) refContext += `Content: ${ref.content_snippet.slice(0, 500)}\n`;
+    }
+    return refContext;
+  } catch (e) {
+    console.error("Error fetching reference context:", e);
+    return "";
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -261,6 +294,9 @@ Deno.serve(async (req) => {
     }
 
     const isSw = kiswahiliSubjects.includes(subject);
+
+    // Fetch reference context from scraped schemes
+    const referenceContext = await fetchReferenceContext(grade, subject, strand);
 
     // If we have sub-strands, generate per sub-strand to avoid truncation
     if (subStrands && Array.isArray(subStrands) && subStrands.length > 0) {
