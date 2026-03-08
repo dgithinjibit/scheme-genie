@@ -308,8 +308,10 @@ Deno.serve(async (req) => {
 
       for (const ss of subStrands as SubStrandInfo[]) {
         try {
-          const { rows, weeksUsed } = await generateForSubStrand(
-            LOVABLE_API_KEY, grade, subject, strand, ss, context || "", isSw, currentWeek, lessonsPerWeek
+            const enrichedContext = (context || "") + referenceContext;
+            const { rows, weeksUsed } = await generateForSubStrand(
+              LOVABLE_API_KEY, grade, subject, strand, ss, enrichedContext, isSw, currentWeek, lessonsPerWeek
+            );
           );
           allRows.push(...rows);
           currentWeek += weeksUsed;
