@@ -255,7 +255,7 @@ const SchemeGeneratorDialog = () => {
                   <Select value={strand} onValueChange={(v) => { setStrand(v); setSubStrand(""); setStep(4); }}>
                     <SelectTrigger><SelectValue placeholder="Select Strand" /></SelectTrigger>
                     <SelectContent>
-                      {["2.0 Performing and Displaying"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      {availableStrands.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 )}
