@@ -140,14 +140,16 @@ const SchemeGeneratorDialog = () => {
       <table>
         <thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
         <tbody>${generatedRows.map((row) => `<tr>
+          <td>${row.week}</td>
+          <td>${row.lesson}</td>
           <td>${row.strand}</td>
           <td>${row.subStrand}</td>
-          <td>${row.learningOutcomes.replace(/\n/g, "<br/>")}</td>
+          <td>${row.specificLearningOutcome.replace(/\n/g, "<br/>")}</td>
+          <td>${row.keyInquiryQuestion}</td>
           <td>${row.learningExperiences.replace(/\n/g, "<br/>")}</td>
-          <td>${row.inquiryQuestions.replace(/\n/g, "<br/>")}</td>
-          <td>${row.coreCompetencies}</td>
-          <td>${row.values}</td>
-          <td>${row.pcis}</td>
+          <td>${row.learningResources}</td>
+          <td>${row.assessmentMethods}</td>
+          <td>${row.reflection}</td>
         </tr>`).join("")}</tbody>
       </table>`;
 
