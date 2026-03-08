@@ -198,7 +198,7 @@ const SchemeGeneratorDialog = () => {
         <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="font-serif text-xl">
-              {step < 5 ? "Create Scheme of Work" : "Preview Scheme of Work"}
+              {step < 6 ? "Create Scheme of Work" : "Preview Scheme of Work"}
             </DialogTitle>
           </DialogHeader>
 
