@@ -130,24 +130,25 @@ function validateAndFixSLO(slo: string): string {
   return slo;
 }
 
-/** GUARDRAIL 4: Validate Learning Experiences (must start with "Learner is guided to:" + a,b,c). */
+/** GUARDRAIL 4: Validate Learning Experiences (must start with "Learner is guided to:" + a,b — knowledge & skills only, no attitudes). */
 function validateAndFixExperiences(exp: string): string {
   if (!exp || exp.trim().length === 0) {
-    return "Learner is guided to:\na) [Activity 1]\nb) [Activity 2]\nc) [Activity 3]";
+    return "Learner is guided to:\na) [Knowledge activity]\nb) [Skills activity]";
   }
   const hasGuided = /learner is guided to/i.test(exp);
   const hasA = /a\)/.test(exp);
   const hasB = /b\)/.test(exp);
-  const hasC = /c\)/.test(exp);
 
-  if (hasGuided && hasA && hasB && hasC) return exp;
+  // Strip c) if AI included it — attitudes don't get their own activity
+  let fixed = exp.replace(/\n\s*c\)[^\n]*/g, "").trim();
 
-  let fixed = exp;
+  if (hasGuided && hasA && hasB) return fixed;
+
   if (!hasGuided) fixed = "Learner is guided to:\n" + fixed;
-  if (!hasA || !hasB || !hasC) {
-    const lines = exp.split(/\n|(?<=\.)\s+/).map(l => l.trim()).filter(l => l && !l.toLowerCase().includes("learner is guided"));
-    if (lines.length >= 3) {
-      return `Learner is guided to:\na) ${lines[0].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}\nb) ${lines[1].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}\nc) ${lines[2].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}`;
+  if (!hasA || !hasB) {
+    const lines = fixed.split(/\n|(?<=\.)\s+/).map(l => l.trim()).filter(l => l && !l.toLowerCase().includes("learner is guided"));
+    if (lines.length >= 2) {
+      return `Learner is guided to:\na) ${lines[0].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}\nb) ${lines[1].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}`;
     }
   }
   return fixed;
@@ -301,12 +302,11 @@ RULES:
    - b) Skills (Psychomotor): Use verbs requiring a TANGIBLE output — Execute, Perform, Construct, Demonstrate, Draw, Write, Sing, Read, Calculate, Measure, Sketch, Solve, Model, Trace, Cut, Colour, Paint. NEVER use "learn to...".
    - c) Attitudes/Values (Affective): Link to OBSERVABLE behaviour — Appreciate, Respect, Value, Practise, Uphold, Collaborate, Persist, Commit, Adhere, Advocate. NEVER use "have a positive attitude".
    Every lesson MUST have exactly a), b), c) — one knowledge, one skill, one attitude. No more, no less.
-4. **Learning Experiences**: MUST begin with "Learner is guided to:" followed by EXACTLY 3 lettered activities that DIRECTLY CORRESPOND to the 3 Specific Learning Outcomes.
+4. **Learning Experiences**: MUST begin with "Learner is guided to:" followed by EXACTLY 2 lettered activities based on KNOWLEDGE and SKILLS outcomes only. Do NOT include an activity for the attitudes/values outcome — attitudes are developed through the knowledge and skills activities naturally.
    - a) must relate to the KNOWLEDGE outcome (a) — e.g. if SLO a) says "identify locally available materials used as beddings", then experience a) should be "discuss locally available materials used as beddings"
-   - b) must relate to the SKILLS outcome (b) — e.g. if SLO b) says "draw items used as beddings", then experience b) should be "use digital devices to search for items used as beddings" or a hands-on activity
-   - c) must relate to the ATTITUDES outcome (c) — e.g. if SLO c) says "appreciate sleeping in a clean place", then experience c) should reinforce that value through discussion or role-play
+   - b) must relate to the SKILLS outcome (b) — e.g. if SLO b) says "draw items used as beddings", then experience b) should be "draw items used as beddings" or a hands-on activity
    MANDATORY FORMAT — no other format is acceptable:
-   "Learner is guided to:\\na) [activity mirroring SLO a]\\nb) [activity mirroring SLO b]\\nc) [activity mirroring SLO c]"
+   "Learner is guided to:\\na) [activity mirroring SLO a - knowledge]\\nb) [activity mirroring SLO b - skills]"
    ${hasOfficialData ? 'Use the official suggested experiences below as source material for the activities.' : 'Use student-centered activities (observing, discussing, drawing, role-playing, experimenting).'}
    Activities must account for diverse learning environments.
 5. **Key Inquiry Question**: ${hasOfficialData ? 'Use the official KICD question provided, or create a closely related child-friendly variant per lesson.' : 'ONE open-ended question to stimulate curiosity and critical thinking.'} Must be age-appropriate.

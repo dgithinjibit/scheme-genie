@@ -58,19 +58,19 @@ function validateAndFixSLO(slo: string): string {
 
 function validateAndFixExperiences(exp: string): string {
   if (!exp || exp.trim().length === 0) {
-    return "Learner is guided to:\na) [Activity 1]\nb) [Activity 2]\nc) [Activity 3]";
+    return "Learner is guided to:\na) [Knowledge activity]\nb) [Skills activity]";
   }
   const hasGuided = /learner is guided to/i.test(exp);
   const hasA = /a\)/.test(exp);
   const hasB = /b\)/.test(exp);
-  const hasC = /c\)/.test(exp);
-  if (hasGuided && hasA && hasB && hasC) return exp;
-  let fixed = exp;
+  // Strip c) if AI included it — attitudes don't get their own activity
+  let fixed = exp.replace(/\n\s*c\)[^\n]*/g, "").trim();
+  if (hasGuided && hasA && hasB) return fixed;
   if (!hasGuided) fixed = "Learner is guided to:\n" + fixed;
-  if (!hasA || !hasB || !hasC) {
-    const lines = exp.split(/\n|(?<=\.)\s+/).map(l => l.trim()).filter(l => l && !l.toLowerCase().includes("learner is guided"));
-    if (lines.length >= 3) {
-      return `Learner is guided to:\na) ${lines[0].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}\nb) ${lines[1].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}\nc) ${lines[2].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}`;
+  if (!hasA || !hasB) {
+    const lines = fixed.split(/\n|(?<=\.)\s+/).map(l => l.trim()).filter(l => l && !l.toLowerCase().includes("learner is guided"));
+    if (lines.length >= 2) {
+      return `Learner is guided to:\na) ${lines[0].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}\nb) ${lines[1].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}`;
     }
   }
   return fixed;
@@ -188,21 +188,31 @@ describe("Guardrail 3: SLO Format Validation", () => {
   });
 });
 
-describe("Guardrail 4: Learning Experiences Format", () => {
-  it("returns placeholder for empty experiences", () => {
+describe("Guardrail 4: Learning Experiences Format (knowledge + skills only)", () => {
+  it("returns placeholder with 2 activities for empty experiences", () => {
     const result = validateAndFixExperiences("");
     expect(result).toContain("Learner is guided to:");
     expect(result).toContain("a)");
+    expect(result).toContain("b)");
+    expect(result).not.toContain("c)");
   });
 
   it("adds prefix if missing", () => {
-    const exp = "a) Discuss topics\nb) Draw items\nc) Share findings";
+    const exp = "a) Discuss topics\nb) Draw items";
     const result = validateAndFixExperiences(exp);
     expect(result).toContain("Learner is guided to:");
   });
 
-  it("leaves correct format unchanged", () => {
-    const exp = "Learner is guided to:\na) Discuss\nb) Draw\nc) Share";
+  it("strips c) attitude activity if AI included it", () => {
+    const exp = "Learner is guided to:\na) Discuss animals\nb) Draw animals\nc) Appreciate wildlife";
+    const result = validateAndFixExperiences(exp);
+    expect(result).toContain("a) Discuss animals");
+    expect(result).toContain("b) Draw animals");
+    expect(result).not.toContain("c)");
+  });
+
+  it("leaves correct 2-activity format unchanged", () => {
+    const exp = "Learner is guided to:\na) Discuss\nb) Draw";
     expect(validateAndFixExperiences(exp)).toBe(exp);
   });
 });
