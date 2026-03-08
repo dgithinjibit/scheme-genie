@@ -19,7 +19,8 @@ export {
 } from "./lower-primary/english-activities";
 export { grade6Agriculture } from "./upper-primary/agriculture";
 export { grade4CRE } from "./upper-primary/cre";
-export { grade4English } from "./upper-primary/english";
+export { grade4English, grade5English, grade6English } from "./upper-primary/english";
+export { grade1IRE, grade2IRE, grade3IRE } from "./lower-primary/ire";
 
 import type { StrandInfo } from "./types";
 import { grade1CreativeActivities, grade2CreativeActivities, grade3CreativeActivities } from "./lower-primary/creative-activities";
@@ -37,9 +38,10 @@ import {
   grade2EnglishActivities,
   grade3EnglishActivities,
 } from "./lower-primary/english-activities";
+import { grade1IRE, grade2IRE, grade3IRE } from "./lower-primary/ire";
 import { grade6Agriculture } from "./upper-primary/agriculture";
 import { grade4CRE } from "./upper-primary/cre";
-import { grade4English } from "./upper-primary/english";
+import { grade4English, grade5English, grade6English } from "./upper-primary/english";
 
 // ─── Strand registry keyed by "Grade X|Subject" ───
 
@@ -53,6 +55,9 @@ const hardcodedStrands: Record<CurriculumKey, StrandInfo[]> = {
   "Grade 1|HRE": grade1HRE,
   "Grade 2|HRE": grade2HRE,
   "Grade 3|HRE": grade3HRE,
+  "Grade 1|IRE": grade1IRE,
+  "Grade 2|IRE": grade2IRE,
+  "Grade 3|IRE": grade3IRE,
   "Grade 1|Kiswahili": grade1Kiswahili,
   "Grade 2|Kiswahili": grade2Kiswahili,
   "Grade 3|Kiswahili": grade3Kiswahili,
@@ -67,6 +72,8 @@ const hardcodedStrands: Record<CurriculumKey, StrandInfo[]> = {
   "Grade 3|Mathematics": grade3Mathematics,
   "Grade 4|CRE": grade4CRE,
   "Grade 4|English": grade4English,
+  "Grade 5|English": grade5English,
+  "Grade 6|English": grade6English,
   "Grade 6|Agriculture": grade6Agriculture,
 };
 
