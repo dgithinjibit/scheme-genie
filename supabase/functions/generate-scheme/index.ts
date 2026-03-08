@@ -570,9 +570,9 @@ Return ONLY a valid JSON array.`;
       );
     }
 
-    // GUARDRAIL: Enforce correct week/lesson numbering
-    rows = enforceWeekLessonNumbering(rows, 1, lessonsPerWeek);
-    console.log(`Generated ${rows.length} lesson rows successfully (with numbering fix)`);
+    // MASTER GUARDRAIL: validate & sanitize all rows
+    rows = validateAndSanitizeRows(rows, strand, strand, grade, subject, 1, lessonsPerWeek);
+    console.log(`Generated ${rows.length} lesson rows successfully (with full validation)`);
 
     return new Response(
       JSON.stringify({ rows, source: "ai_knowledge" }),
