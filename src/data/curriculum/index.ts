@@ -19,7 +19,10 @@ export {
 } from "./lower-primary/english-activities";
 export { grade6Agriculture } from "./upper-primary/agriculture";
 export { grade4CRE } from "./upper-primary/cre";
+export { grade4CreativeArts } from "./upper-primary/creative-arts";
 export { grade4English, grade5English, grade6English } from "./upper-primary/english";
+export { grade4IndigenousLanguage, grade5IndigenousLanguage } from "./upper-primary/indigenous-language";
+export { grade4SocialStudies } from "./upper-primary/social-studies";
 export { grade1IRE, grade2IRE, grade3IRE } from "./lower-primary/ire";
 
 import type { StrandInfo } from "./types";
@@ -41,7 +44,10 @@ import {
 import { grade1IRE, grade2IRE, grade3IRE } from "./lower-primary/ire";
 import { grade6Agriculture } from "./upper-primary/agriculture";
 import { grade4CRE } from "./upper-primary/cre";
+import { grade4CreativeArts } from "./upper-primary/creative-arts";
 import { grade4English, grade5English, grade6English } from "./upper-primary/english";
+import { grade4IndigenousLanguage, grade5IndigenousLanguage } from "./upper-primary/indigenous-language";
+import { grade4SocialStudies } from "./upper-primary/social-studies";
 
 // ─── Strand registry keyed by "Grade X|Subject" ───
 
@@ -71,8 +77,12 @@ const hardcodedStrands: Record<CurriculumKey, StrandInfo[]> = {
   "Grade 2|Mathematics": grade2Mathematics,
   "Grade 3|Mathematics": grade3Mathematics,
   "Grade 4|CRE": grade4CRE,
+  "Grade 4|Creative Arts": grade4CreativeArts,
   "Grade 4|English": grade4English,
+  "Grade 4|Indigenous Language": grade4IndigenousLanguage,
+  "Grade 4|Social Studies": grade4SocialStudies,
   "Grade 5|English": grade5English,
+  "Grade 5|Indigenous Language": grade5IndigenousLanguage,
   "Grade 6|English": grade6English,
   "Grade 6|Agriculture": grade6Agriculture,
 };
@@ -132,7 +142,7 @@ const upperPrimaryLessons: Record<string, number> = {
   "Science & Technology": 4,
   "Social Studies": 3,
   "Agriculture": 4,
-  "Creative Arts": 3,
+  "Creative Arts": 6,
   "CRE": 3, "HRE": 3, "IRE": 3,
   "Arabic": 2, "French": 2, "German": 2, "Mandarin": 2,
   "Indigenous Language": 2,
