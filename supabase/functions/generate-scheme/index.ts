@@ -153,12 +153,12 @@ function validateAndFixSLO(slo: string, isSw: boolean): string {
   return slo;
 }
 
-/** GUARDRAIL 4: Validate Learning Experiences (English: "Learner is guided to:" + a,b; Kiswahili: "**Mwanafunzi aweze:-**" + dashes). */
+/** GUARDRAIL 4: Validate Learning Experiences (English: "Learner is guided to:" + a,b,c,d; Kiswahili: "**Mwanafunzi aweze:-**" + dashes). */
 function validateAndFixExperiences(exp: string, isSw: boolean): string {
   if (!exp || exp.trim().length === 0) {
     return isSw
-      ? "**Mwanafunzi aweze:-**\n-kujadili [maarifa]\n-kutekeleza [ujuzi]"
-      : "Learner is guided to:\na) [Knowledge activity]\nb) [Skills activity]";
+      ? "**Mwanafunzi aweze:-**\n-kujadili [maarifa]\n-kutekeleza [ujuzi]\n-kutumia [utumiaji]\n-kuthamini [mitazamo]"
+      : "Learner is guided to:\na) [Knowledge activity]\nb) [Skills activity]\nc) [Application activity]\nd) [Attitudes/Values activity]";
   }
   
   if (isSw) {
@@ -175,8 +175,8 @@ function validateAndFixExperiences(exp: string, isSw: boolean): string {
     if (!hasHeader) {
       fixed = "**Mwanafunzi aweze:-**\n" + fixed.trim();
     }
-    // Convert a), b), c) to dashes if present
-    fixed = fixed.replace(/\n\s*[a-c]\)\s*/gi, '\n-');
+    // Convert a), b), c), d) to dashes if present
+    fixed = fixed.replace(/\n\s*[a-d]\)\s*/gi, '\n-');
     return fixed;
   }
   
@@ -184,17 +184,18 @@ function validateAndFixExperiences(exp: string, isSw: boolean): string {
   const hasGuided = /learner is guided to/i.test(exp);
   const hasA = /a\)/.test(exp);
   const hasB = /b\)/.test(exp);
+  const hasC = /c\)/.test(exp);
+  const hasD = /d\)/.test(exp);
 
-  // Strip c) if AI included it — attitudes don't get their own activity
-  let fixed = exp.replace(/\n\s*c\)[^\n]*/g, "").trim();
+  let fixed = exp.trim();
 
-  if (hasGuided && hasA && hasB) return fixed;
+  if (hasGuided && hasA && hasB && hasC && hasD) return fixed;
 
   if (!hasGuided) fixed = "Learner is guided to:\n" + fixed;
-  if (!hasA || !hasB) {
+  if (!hasA || !hasB || !hasC || !hasD) {
     const lines = fixed.split(/\n|(?<=\.)\s+/).map(l => l.trim()).filter(l => l && !l.toLowerCase().includes("learner is guided"));
-    if (lines.length >= 2) {
-      return `Learner is guided to:\na) ${lines[0].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}\nb) ${lines[1].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}`;
+    if (lines.length >= 4) {
+      return `Learner is guided to:\na) ${lines[0].replace(/^[a-d]\)\s*|^[-•]\s*/i, "")}\nb) ${lines[1].replace(/^[a-d]\)\s*|^[-•]\s*/i, "")}\nc) ${lines[2].replace(/^[a-d]\)\s*|^[-•]\s*/i, "")}\nd) ${lines[3].replace(/^[a-d]\)\s*|^[-•]\s*/i, "")}`;
     }
   }
   return fixed;
@@ -393,11 +394,13 @@ RULES:
    - b) Skills (Psychomotor): Use verbs requiring a TANGIBLE output — Execute, Perform, Construct, Demonstrate, Draw, Write, Sing, Read, Calculate, Measure, Sketch, Solve, Model, Trace, Cut, Colour, Paint. NEVER use "learn to...".
    - c) Attitudes/Values (Affective): Link to OBSERVABLE behaviour — Appreciate, Respect, Value, Practise, Uphold, Collaborate, Persist, Commit, Adhere, Advocate. NEVER use "have a positive attitude".
    Every lesson MUST have exactly a), b), c) — one knowledge, one skill, one attitude. No more, no less.
-4. **Learning Experiences**: MUST begin with "Learner is guided to:" followed by EXACTLY 2 lettered activities based on KNOWLEDGE and SKILLS outcomes only. Do NOT include an activity for the attitudes/values outcome — attitudes are developed through the knowledge and skills activities naturally.
+4. **Learning Experiences**: MUST begin with "Learner is guided to:" followed by EXACTLY 4 lettered activities, one for each domain plus application.
    - a) must relate to the KNOWLEDGE outcome (a) — e.g. if SLO a) says "identify locally available materials used as beddings", then experience a) should be "discuss locally available materials used as beddings"
    - b) must relate to the SKILLS outcome (b) — e.g. if SLO b) says "draw items used as beddings", then experience b) should be "draw items used as beddings" or a hands-on activity
+   - c) must be an APPLICATION activity — applying the knowledge and skills in a real-world or practical context
+   - d) must relate to the ATTITUDES/VALUES outcome (c) — an activity that develops the desired attitude or value
    MANDATORY FORMAT — no other format is acceptable:
-   "Learner is guided to:\\na) [activity mirroring SLO a - knowledge]\\nb) [activity mirroring SLO b - skills]"
+   "Learner is guided to:\\na) [activity mirroring SLO a - knowledge]\\nb) [activity mirroring SLO b - skills]\\nc) [application activity]\\nd) [attitudes/values activity]"
    Use the official suggested experiences below as source material for the activities.
    Activities must account for diverse learning environments.
 5. **Key Inquiry Question**: Use the official KICD question provided, or create a closely related child-friendly variant per lesson. Must be age-appropriate.
