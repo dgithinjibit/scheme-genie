@@ -105,11 +105,34 @@ function enforceStrandNames(rows: SchemeRow[], strand: string, subStrandName: st
   return rows.map((row) => ({ ...row, strand, subStrand: subStrandName }));
 }
 
-/** GUARDRAIL 3: Validate & fix Specific Learning Outcomes (must have a, b, c). */
-function validateAndFixSLO(slo: string): string {
+/** GUARDRAIL 3: Validate & fix Specific Learning Outcomes (must have a, b, c for English; dashes for Kiswahili). */
+function validateAndFixSLO(slo: string, isSw: boolean): string {
   if (!slo || slo.trim().length === 0) {
-    return "By the end of the lesson, the learner should be able to:\na) [Knowledge outcome]\nb) [Skills outcome]\nc) [Attitudes/Values outcome]";
+    return isSw 
+      ? "**Kufikia mwisho wa somo mwanafunzi aweze:**\n-kutambua [maarifa]\n-kutekeleza [ujuzi]\n-kufurahia [mitazamo]"
+      : "By the end of the lesson, the learner should be able to:\na) [Knowledge outcome]\nb) [Skills outcome]\nc) [Attitudes/Values outcome]";
   }
+  
+  if (isSw) {
+    // Kiswahili format: should start with **Kufikia mwisho... and use dashes
+    const hasHeader = /kufikia mwisho wa somo/i.test(slo);
+    const hasDashes = /-ku/.test(slo);
+    
+    if (hasHeader && hasDashes) {
+      return slo.trim();
+    }
+    
+    // Try to fix it
+    let fixed = slo;
+    if (!hasHeader) {
+      fixed = "**Kufikia mwisho wa somo mwanafunzi aweze:**\n" + fixed.trim();
+    }
+    // Convert a), b), c) to dashes if present
+    fixed = fixed.replace(/\n\s*[a-c]\)\s*/gi, '\n-');
+    return fixed;
+  }
+  
+  // English format: a), b), c)
   const hasA = /a\)/.test(slo);
   const hasB = /b\)/.test(slo);
   const hasC = /c\)/.test(slo);
