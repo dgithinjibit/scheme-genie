@@ -3,7 +3,7 @@ export type { SubStrandInfo, StrandInfo, SchemeRow } from "./types";
 
 // Re-export grade data
 export { grade1CreativeActivities, grade2CreativeActivities, grade3CreativeActivities } from "./lower-primary/creative-activities";
-export { grade1CRE } from "./lower-primary/cre";
+export { grade1CRE, grade2CRE, grade3CRE } from "./lower-primary/cre";
 export { grade1HRE, grade2HRE, grade3HRE } from "./lower-primary/hre";
 export { grade1Kiswahili, grade2Kiswahili, grade3Kiswahili } from "./lower-primary/kiswahili";
 export { grade1Mathematics, grade2Mathematics, grade3Mathematics } from "./lower-primary/mathematics";
@@ -27,7 +27,7 @@ export { grade1IRE, grade2IRE, grade3IRE } from "./lower-primary/ire";
 
 import type { StrandInfo } from "./types";
 import { grade1CreativeActivities, grade2CreativeActivities, grade3CreativeActivities } from "./lower-primary/creative-activities";
-import { grade1CRE } from "./lower-primary/cre";
+import { grade1CRE, grade2CRE, grade3CRE } from "./lower-primary/cre";
 import { grade1HRE, grade2HRE, grade3HRE } from "./lower-primary/hre";
 import { grade1Kiswahili, grade2Kiswahili, grade3Kiswahili } from "./lower-primary/kiswahili";
 import { grade1Mathematics, grade2Mathematics, grade3Mathematics } from "./lower-primary/mathematics";
@@ -58,6 +58,8 @@ const hardcodedStrands: Record<CurriculumKey, StrandInfo[]> = {
   "Grade 2|Creative Activities": grade2CreativeActivities,
   "Grade 3|Creative Activities": grade3CreativeActivities,
   "Grade 1|CRE": grade1CRE,
+  "Grade 2|CRE": grade2CRE,
+  "Grade 3|CRE": grade3CRE,
   "Grade 1|HRE": grade1HRE,
   "Grade 2|HRE": grade2HRE,
   "Grade 3|HRE": grade3HRE,
