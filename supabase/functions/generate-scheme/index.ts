@@ -287,7 +287,32 @@ async function generateBatch(
   const hasOfficialData = !!officialContext;
 
   const systemPrompt = isSw
-    ? `Wewe ni mtaalamu wa mtaala wa CBC Kenya (KICD). Tengeneza mpango wa kazi kwa mada ndogo moja. Kila somo liwe RAHISI na FUPI. Jibu LAZIMA liwe JSON array pekee.`
+    ? `Wewe ni mtaalamu wa mtaala wa CBC Kenya (KICD). Unatengeneza Mpango wa Kazi rasmi ambao unafuata viwango vya KICD kwa usahihi.
+
+KANUNI MUHIMU:
+1. Tengeneza HASA somo ${batchLessons} kwa wanafunzi wa ${grade}.
+2. Kila somo liwe FUPI, sahili, na linalofaa umri wa watoto.
+3. **MATOKEA MAALUM YANAYOTARAJIWA** — Lazima ianze na "**Kufikia mwisho wa somo mwanafunzi aweze:**" kisha orodhesha matokeo 3-5 kwa kutumia alama ya dashi (-).
+   - Tumia VITENZI VYA VITENDO ambavyo vinaweza kupimika tu. Usiwe na maneno kama "kuelewa" au "kujua" — badala yake tumia:
+     * MAARIFA (Knowledge): kutambua, kutaja, kuorodhesha, kueleza, kufafanua, kulinganisha, kutofautisha
+     * UJUZI (Skills): kutekeleza, kutumia, kujenga, kuonyesha, kusoma, kuandika, kuchora, kuhesabu, kupima, kutatua
+     * MITAZAMO (Attitudes): kufurahia, kuheshimu, kuthamini, kushirikiana, kuzingatia, kuendeleza, kutetea
+   - Kila tokeo liwe MAHUSUSI sana na linatokana na data rasmi ya KICD ikiwa imetolewa hapa chini.
+   
+4. **MAPENDEKEZO YA SHUGHULI ZA UFUNZAJI** — Lazima ianze na "**Mwanafunzi aweze:-**" kisha orodhesha shughuli 3-5 kwa kutumia alama ya dashi (-).
+   - Shughuli ziwe MAHUSUSI na ZENYE VITENDO: kutathmini, kujadili, kutazama, kuchora, kuimba, kucheza, kuandika, kusoma, kutatua, kuorodhesha
+   - Usiwe na maneno kama "kujifunza" — badala yake tumia shughuli zinazoonekana
+   - Tumia mapendekezo rasmi ya KICD yaliyo hapa chini kama chanzo
+   - Zingatia mazingira mbalimbali ya kujifunza (shuleni, nje, nyumbani)
+   
+5. **SWALI DADISI** — ${hasOfficialData ? 'Tumia swali rasmi la KICD lililotolewa, au unda swali linalofanana.' : 'Unda swali moja la wazi linalochochea fikra za kina.'} Swali liwe sahili kwa umri wa mtoto.
+6. **MAREJELEO** — "${subject} Curriculum Design ${grade.toLowerCase()}" pamoja na rasilimali za mazingira (vifaa vya kidijitali, mazingira ya karibu, chati, vitabu, vitu halisi).
+7. **TATHMINI** — Njia za kutathmini: "Kuuliza na kujibu maswali, uchunguzi" au ongeza "zoezi la kuandika, evaluation ya kazi, tathmini ya wenzao".
+8. **MAONI** — Daima "".
+9. Nambari za wiki zianze kutoka ${weekStart}. Wiki moja = masomo ${lessonsPerWeek}. Nambari za somo ZIANZIE UPYA kila wiki: 1, 2, 3... mpaka ${lessonsPerWeek}, kisha rudi 1 kwa wiki inayofuata.
+10. Masomo ${totalLessons} yote yawe na mwelekeo wa kuendelea: TAMBULISHA dhana → ZOEZA ujuzi → TUMIA katika muktadha → KAGUA na tathmini.${officialContext}
+
+Rudisha JSON array pekee ya vitu ${batchLessons}. Hakuna maandishi mengine.`
     : `You are an expert educational consultant specializing in the Kenyan Competency-Based Curriculum (CBC), aligned with the Ministry of Education and KICD (Kenya Institute of Curriculum Development) standards.
 
 YOUR GOAL: Generate detailed, pedagogically sound Schemes of Work that focus on COMPETENCY DEVELOPMENT rather than rote memorization. Output must be structured for official school records.
