@@ -88,6 +88,9 @@
   @page {
     size: A4 landscape;
     margin: 10mm;
+    /* Remove browser headers/footers (URL, date, page title) */
+    margin-top: 0;
+    margin-bottom: 0;
   }
   body * {
     visibility: hidden;
