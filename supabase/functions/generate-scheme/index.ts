@@ -333,6 +333,12 @@ async function generateBatch(
 
   const hasOfficialData = !!officialContext;
 
+  // GUARDRAIL 8: Refuse to generate if sub-strand has no official KICD learning outcomes
+  if (!hasOfficialData) {
+    console.error(`No official KICD data for sub-strand "${subStrandName}" in ${grade} ${subject}. Refusing to generate.`);
+    throw new Error(`NO_OFFICIAL_DATA: No verified KICD curriculum data available for "${subStrandName}". Cannot generate without official learning outcomes.`);
+  }
+
   const systemPrompt = isSw
     ? `Wewe ni mtaalamu wa mtaala wa CBC Kenya (KICD). Unatengeneza Mpango wa Kazi rasmi ambao unafuata viwango vya KICD kwa usahihi.
 
