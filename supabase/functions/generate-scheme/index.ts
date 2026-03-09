@@ -475,8 +475,8 @@ async function generateForSubStrand(
         );
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Unknown";
-        console.warn(`Batch ${batchIndex} attempt ${attempts}/${maxAttempts} failed: ${msg}`);
         if (msg === "RATE_LIMIT") throw e; // Don't retry rate limits
+        if (msg.startsWith("NO_OFFICIAL_DATA:")) throw e; // Don't retry missing data
         if (attempts >= maxAttempts) throw e;
         // Brief pause before retry
         await new Promise(r => setTimeout(r, 2000));
