@@ -336,6 +336,8 @@ async function generateBatch(
   const systemPrompt = isSw
     ? `Wewe ni mtaalamu wa mtaala wa CBC Kenya (KICD). Unatengeneza Mpango wa Kazi rasmi ambao unafuata viwango vya KICD kwa usahihi.
 
+SHARTI MUHIMU: Lazima utumie data rasmi ya KICD iliyotolewa hapa chini PEKEE. USIBUNI, USITENGENEZE, au USIZUSHE matokeo ya kujifunza, majina ya strand, majina ya sub-strand, au maudhui ya mtaala ambayo hayapo katika mfumo wa KICD.
+
 KANUNI MUHIMU:
 1. Tengeneza HASA somo ${batchLessons} kwa wanafunzi wa ${grade}.
 2. Kila somo liwe FUPI, sahili, na linalofaa umri wa watoto.
