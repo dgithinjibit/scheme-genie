@@ -481,7 +481,7 @@ async function generateForSubStrand(
   }
 
   // MASTER GUARDRAIL: validate & sanitize all rows
-  const fixedRows = validateAndSanitizeRows(allRows, strand, subStrand.name, grade, subject, weekStart, lessonsPerWeek);
+  const fixedRows = validateAndSanitizeRows(allRows, strand, subStrand.name, grade, subject, weekStart, lessonsPerWeek, isSw);
 
   const totalWeeks = Math.ceil(fixedRows.length / lessonsPerWeek);
   return { rows: fixedRows, weeksUsed: totalWeeks };
