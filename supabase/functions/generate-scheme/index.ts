@@ -360,7 +360,7 @@ KANUNI MUHIMU:
    - Tumia mapendekezo rasmi ya KICD yaliyo hapa chini kama chanzo
    - Zingatia mazingira mbalimbali ya kujifunza (shuleni, nje, nyumbani)
    
-5. **SWALI DADISI** — ${hasOfficialData ? 'Tumia swali rasmi la KICD lililotolewa, au unda swali linalofanana.' : 'Unda swali moja la wazi linalochochea fikra za kina.'} Swali liwe sahili kwa umri wa mtoto.
+5. **SWALI DADISI** — Tumia swali rasmi la KICD lililotolewa, au unda swali linalofanana. Swali liwe sahili kwa umri wa mtoto.
 6. **MAREJELEO** — "${subject} Curriculum Design ${grade.toLowerCase()}" pamoja na rasilimali za mazingira (vifaa vya kidijitali, mazingira ya karibu, chati, vitabu, vitu halisi).
 7. **TATHMINI** — Njia za kutathmini: "Kuuliza na kujibu maswali, uchunguzi" au ongeza "zoezi la kuandika, evaluation ya kazi, tathmini ya wenzao".
 8. **MAONI** — Daima "".
