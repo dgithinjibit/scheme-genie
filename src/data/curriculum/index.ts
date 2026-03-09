@@ -49,6 +49,7 @@ import { grade4CreativeArts } from "./upper-primary/creative-arts";
 import { grade4English, grade5English, grade6English } from "./upper-primary/english";
 import { grade4IndigenousLanguage, grade5IndigenousLanguage } from "./upper-primary/indigenous-language";
 import { grade4SocialStudies } from "./upper-primary/social-studies";
+import { grade4Kiswahili } from "./upper-primary/kiswahili";
 
 // ─── Strand registry keyed by "Grade X|Subject" ───
 
