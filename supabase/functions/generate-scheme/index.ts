@@ -153,12 +153,12 @@ function validateAndFixSLO(slo: string, isSw: boolean): string {
   return slo;
 }
 
-/** GUARDRAIL 4: Validate Learning Experiences (English: "Learner is guided to:" + a,b; Kiswahili: "**Mwanafunzi aweze:-**" + dashes). */
+/** GUARDRAIL 4: Validate Learning Experiences (English: "Learner is guided to:" + a,b,c,d; Kiswahili: "**Mwanafunzi aweze:-**" + dashes). */
 function validateAndFixExperiences(exp: string, isSw: boolean): string {
   if (!exp || exp.trim().length === 0) {
     return isSw
-      ? "**Mwanafunzi aweze:-**\n-kujadili [maarifa]\n-kutekeleza [ujuzi]"
-      : "Learner is guided to:\na) [Knowledge activity]\nb) [Skills activity]";
+      ? "**Mwanafunzi aweze:-**\n-kujadili [maarifa]\n-kutekeleza [ujuzi]\n-kutumia [utumiaji]\n-kuthamini [mitazamo]"
+      : "Learner is guided to:\na) [Knowledge activity]\nb) [Skills activity]\nc) [Application activity]\nd) [Attitudes/Values activity]";
   }
   
   if (isSw) {
@@ -175,8 +175,8 @@ function validateAndFixExperiences(exp: string, isSw: boolean): string {
     if (!hasHeader) {
       fixed = "**Mwanafunzi aweze:-**\n" + fixed.trim();
     }
-    // Convert a), b), c) to dashes if present
-    fixed = fixed.replace(/\n\s*[a-c]\)\s*/gi, '\n-');
+    // Convert a), b), c), d) to dashes if present
+    fixed = fixed.replace(/\n\s*[a-d]\)\s*/gi, '\n-');
     return fixed;
   }
   
@@ -184,17 +184,18 @@ function validateAndFixExperiences(exp: string, isSw: boolean): string {
   const hasGuided = /learner is guided to/i.test(exp);
   const hasA = /a\)/.test(exp);
   const hasB = /b\)/.test(exp);
+  const hasC = /c\)/.test(exp);
+  const hasD = /d\)/.test(exp);
 
-  // Strip c) if AI included it — attitudes don't get their own activity
-  let fixed = exp.replace(/\n\s*c\)[^\n]*/g, "").trim();
+  let fixed = exp.trim();
 
-  if (hasGuided && hasA && hasB) return fixed;
+  if (hasGuided && hasA && hasB && hasC && hasD) return fixed;
 
   if (!hasGuided) fixed = "Learner is guided to:\n" + fixed;
-  if (!hasA || !hasB) {
+  if (!hasA || !hasB || !hasC || !hasD) {
     const lines = fixed.split(/\n|(?<=\.)\s+/).map(l => l.trim()).filter(l => l && !l.toLowerCase().includes("learner is guided"));
-    if (lines.length >= 2) {
-      return `Learner is guided to:\na) ${lines[0].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}\nb) ${lines[1].replace(/^[a-c]\)\s*|^[-•]\s*/i, "")}`;
+    if (lines.length >= 4) {
+      return `Learner is guided to:\na) ${lines[0].replace(/^[a-d]\)\s*|^[-•]\s*/i, "")}\nb) ${lines[1].replace(/^[a-d]\)\s*|^[-•]\s*/i, "")}\nc) ${lines[2].replace(/^[a-d]\)\s*|^[-•]\s*/i, "")}\nd) ${lines[3].replace(/^[a-d]\)\s*|^[-•]\s*/i, "")}`;
     }
   }
   return fixed;
