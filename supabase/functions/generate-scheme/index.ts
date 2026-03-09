@@ -268,6 +268,7 @@ function validateAndSanitizeRows(
   subject: string,
   weekStart: number,
   lessonsPerWeek: number,
+  isSw: boolean,
 ): SchemeRow[] {
   console.log(`Guardrails: processing ${rawRows.length} raw rows...`);
   let rows: SchemeRow[] = rawRows.map(r => normalizeRowKeys(r as Record<string, unknown>));
@@ -275,8 +276,8 @@ function validateAndSanitizeRows(
   rows = enforceWeekLessonNumbering(rows, weekStart, lessonsPerWeek);
   rows = rows.map((row) => {
     row = ensureNoEmptyFields(row, grade, subject);
-    row.specificLearningOutcome = validateAndFixSLO(row.specificLearningOutcome);
-    row.learningExperiences = validateAndFixExperiences(row.learningExperiences);
+    row.specificLearningOutcome = validateAndFixSLO(row.specificLearningOutcome, isSw);
+    row.learningExperiences = validateAndFixExperiences(row.learningExperiences, isSw);
     return row;
   });
   const seen = new Set<string>();
