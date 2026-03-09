@@ -600,74 +600,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fallback: no sub-strands, single generation
-    console.log(`Generating scheme for ${grade} ${subject} - ${strand} (no sub-strand data)`);
-
-    const systemPrompt = isSw
-      ? `Wewe ni mwalimu mtaalamu wa CBC Kenya. Tengeneza mpango wa kazi. Jibu LAZIMA liwe JSON array pekee.`
-      : `You are an experienced Kenyan CBC teacher creating a scheme of work. Generate 10-15 lesson rows. Return ONLY a JSON array.`;
-
-    const userPrompt = `Generate a CBC scheme of work for ${grade} ${subject} - ${strand}.
-${context ? `Resources: ${context}` : ""}
-Each row: week, lesson, strand, subStrand, specificLearningOutcome, keyInquiryQuestion, learningExperiences, learningResources, assessmentMethods, reflection.
-Return ONLY a valid JSON array.`;
-
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    });
-
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error("AI gateway error:", aiResponse.status, errorText);
-      if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      return new Response(
-        JSON.stringify({ error: "AI generation failed" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const aiData = await aiResponse.json();
-    const rawContent = aiData.choices?.[0]?.message?.content;
-
-    if (!rawContent) {
-      return new Response(
-        JSON.stringify({ error: "AI returned empty response" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    let rows = extractJsonArray(rawContent);
-
-    if (rows.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "AI returned empty scheme. Please try again." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // MASTER GUARDRAIL: validate & sanitize all rows
-    rows = validateAndSanitizeRows(rows, strand, strand, grade, subject, 1, lessonsPerWeek);
-    console.log(`Generated ${rows.length} lesson rows successfully (with full validation)`);
-
+    // GUARDRAIL 7: NEVER generate without official curriculum data.
+    // If we reach here, it means no hardcoded sub-strand data exists for this subject/strand.
+    console.error(`No official curriculum data available for ${grade} ${subject} - ${strand}. Refusing to generate.`);
     return new Response(
-      JSON.stringify({ rows, source: "ai_knowledge" }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ 
+        error: `We don't have verified KICD curriculum data for "${subject}" (${grade}) yet. Generation is only available for subjects with official curriculum data to ensure accuracy. Please select a different subject or check back later.` 
+      }),
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("generate-scheme error:", error);
