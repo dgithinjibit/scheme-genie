@@ -590,8 +590,13 @@ Deno.serve(async (req) => {
               { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
           }
+          if (msg.startsWith("NO_OFFICIAL_DATA:")) {
+            return new Response(
+              JSON.stringify({ error: msg.replace("NO_OFFICIAL_DATA: ", "") }),
+              { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
           console.error(`Error generating ${ss.name}: ${msg}`);
-          // Continue with next sub-strand
         }
       }
 
