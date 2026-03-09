@@ -3,7 +3,7 @@ export type { SubStrandInfo, StrandInfo, SchemeRow } from "./types";
 
 // Re-export grade data
 export { grade1CreativeActivities, grade2CreativeActivities, grade3CreativeActivities } from "./lower-primary/creative-activities";
-export { grade1CRE } from "./lower-primary/cre";
+export { grade1CRE, grade2CRE, grade3CRE } from "./lower-primary/cre";
 export { grade1HRE, grade2HRE, grade3HRE } from "./lower-primary/hre";
 export { grade1Kiswahili, grade2Kiswahili, grade3Kiswahili } from "./lower-primary/kiswahili";
 export { grade1Mathematics, grade2Mathematics, grade3Mathematics } from "./lower-primary/mathematics";
