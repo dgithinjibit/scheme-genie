@@ -153,11 +153,34 @@ function validateAndFixSLO(slo: string, isSw: boolean): string {
   return slo;
 }
 
-/** GUARDRAIL 4: Validate Learning Experiences (must start with "Learner is guided to:" + a,b — knowledge & skills only, no attitudes). */
-function validateAndFixExperiences(exp: string): string {
+/** GUARDRAIL 4: Validate Learning Experiences (English: "Learner is guided to:" + a,b; Kiswahili: "**Mwanafunzi aweze:-**" + dashes). */
+function validateAndFixExperiences(exp: string, isSw: boolean): string {
   if (!exp || exp.trim().length === 0) {
-    return "Learner is guided to:\na) [Knowledge activity]\nb) [Skills activity]";
+    return isSw
+      ? "**Mwanafunzi aweze:-**\n-kujadili [maarifa]\n-kutekeleza [ujuzi]"
+      : "Learner is guided to:\na) [Knowledge activity]\nb) [Skills activity]";
   }
+  
+  if (isSw) {
+    // Kiswahili format: should start with **Mwanafunzi aweze:-** and use dashes
+    const hasHeader = /mwanafunzi aweze/i.test(exp);
+    const hasDashes = /-ku/.test(exp);
+    
+    if (hasHeader && hasDashes) {
+      return exp.trim();
+    }
+    
+    // Try to fix it
+    let fixed = exp;
+    if (!hasHeader) {
+      fixed = "**Mwanafunzi aweze:-**\n" + fixed.trim();
+    }
+    // Convert a), b), c) to dashes if present
+    fixed = fixed.replace(/\n\s*[a-c]\)\s*/gi, '\n-');
+    return fixed;
+  }
+  
+  // English format
   const hasGuided = /learner is guided to/i.test(exp);
   const hasA = /a\)/.test(exp);
   const hasB = /b\)/.test(exp);
