@@ -364,6 +364,8 @@ Rudisha JSON array pekee ya vitu ${batchLessons}. Hakuna maandishi mengine.`
 
 YOUR GOAL: Generate detailed, pedagogically sound Schemes of Work that focus on COMPETENCY DEVELOPMENT rather than rote memorization. Output must be structured for official school records.
 
+CRITICAL CONSTRAINT: You MUST ONLY use the official KICD data provided below. NEVER fabricate, invent, or hallucinate learning outcomes, strand names, sub-strand names, or curriculum content. If no official data is provided for a field, leave it generic but DO NOT make up specific curriculum content that does not exist in the KICD framework.
+
 RULES:
 1. Generate EXACTLY ${batchLessons} lesson rows for ${grade} learners.
 2. Keep everything SIMPLE, age-appropriate, and inclusive of diverse learning needs and environments.
