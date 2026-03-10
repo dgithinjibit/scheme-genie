@@ -299,7 +299,7 @@ function validateAndSanitizeRows(
 const MAX_LESSONS_PER_BATCH = 5;
 
 async function generateBatch(
-  LOVABLE_API_KEY: string,
+  _apiKey: string,
   grade: string,
   subject: string,
   strand: string,
@@ -425,14 +425,19 @@ Start week numbering from ${weekStart}.
 
 Return ONLY a JSON array of exactly ${batchLessons} objects.`;
 
-  const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+  if (!GROQ_API_KEY) {
+    throw new Error("GROQ_API_KEY is not configured");
+  }
+
+  const aiResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      Authorization: `Bearer ${GROQ_API_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: "meta-llama/llama-4-scout-17b-16e-instruct",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
@@ -457,7 +462,7 @@ Return ONLY a JSON array of exactly ${batchLessons} objects.`;
 }
 
 async function generateForSubStrand(
-  LOVABLE_API_KEY: string,
+  _apiKey: string,
   grade: string,
   subject: string,
   strand: string,
@@ -482,7 +487,7 @@ async function generateForSubStrand(
       attempts++;
       try {
         rows = await generateBatch(
-          LOVABLE_API_KEY, grade, subject, strand, subStrand,
+          GROQ_API_KEY, grade, subject, strand, subStrand,
           batchSize, context, isSw, currentWeek, lessonsPerWeek, batchIndex
         );
       } catch (e) {
@@ -557,10 +562,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
+    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+    if (!GROQ_API_KEY) {
       return new Response(
-        JSON.stringify({ error: "LOVABLE_API_KEY is not configured" }),
+        JSON.stringify({ error: "GROQ_API_KEY is not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -582,7 +587,7 @@ Deno.serve(async (req) => {
         try {
             const enrichedContext = (context || "") + referenceContext;
             const { rows, weeksUsed } = await generateForSubStrand(
-              LOVABLE_API_KEY, grade, subject, strand, ss, enrichedContext, isSw, currentWeek, lessonsPerWeek
+              GROQ_API_KEY, grade, subject, strand, ss, enrichedContext, isSw, currentWeek, lessonsPerWeek
             );
           allRows.push(...rows);
           currentWeek += weeksUsed;
