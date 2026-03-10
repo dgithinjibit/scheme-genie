@@ -299,7 +299,7 @@ function validateAndSanitizeRows(
 const MAX_LESSONS_PER_BATCH = 5;
 
 async function generateBatch(
-  LOVABLE_API_KEY: string,
+  _apiKey: string,
   grade: string,
   subject: string,
   strand: string,
