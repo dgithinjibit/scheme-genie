@@ -587,7 +587,7 @@ Deno.serve(async (req) => {
         try {
             const enrichedContext = (context || "") + referenceContext;
             const { rows, weeksUsed } = await generateForSubStrand(
-              LOVABLE_API_KEY, grade, subject, strand, ss, enrichedContext, isSw, currentWeek, lessonsPerWeek
+              GROQ_API_KEY, grade, subject, strand, ss, enrichedContext, isSw, currentWeek, lessonsPerWeek
             );
           allRows.push(...rows);
           currentWeek += weeksUsed;
