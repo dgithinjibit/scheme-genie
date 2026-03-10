@@ -462,7 +462,7 @@ Return ONLY a JSON array of exactly ${batchLessons} objects.`;
 }
 
 async function generateForSubStrand(
-  LOVABLE_API_KEY: string,
+  _apiKey: string,
   grade: string,
   subject: string,
   strand: string,
