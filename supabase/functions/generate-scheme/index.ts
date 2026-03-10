@@ -487,7 +487,7 @@ async function generateForSubStrand(
       attempts++;
       try {
         rows = await generateBatch(
-          LOVABLE_API_KEY, grade, subject, strand, subStrand,
+          GROQ_API_KEY, grade, subject, strand, subStrand,
           batchSize, context, isSw, currentWeek, lessonsPerWeek, batchIndex
         );
       } catch (e) {
