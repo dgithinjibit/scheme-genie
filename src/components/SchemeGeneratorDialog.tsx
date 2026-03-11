@@ -322,6 +322,13 @@ const SchemeGeneratorDialog = () => {
                   <Button variant="secondary" onClick={handleSave} className="gap-2">
                     <Save className="w-4 h-4" /> Save to Library
                   </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => exportSchemeToDocx(generatedRows!, grade, subject, strand)}
+                    className="gap-2"
+                  >
+                    <FileDown className="w-4 h-4" /> Export DOCX
+                  </Button>
                   <Button onClick={handleExportPDF} className="gap-2 ml-auto">
                     <Download className="w-4 h-4" /> Export PDF
                   </Button>
