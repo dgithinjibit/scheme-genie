@@ -18,7 +18,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { grades, getSubjectsForGrade, getHardcodedStrands, getSubStrandsForStrand, getLessonsPerWeek, type SchemeRow } from "@/data/curriculum";
 import SchemePreview from "./SchemePreview";
-import { FileText, Download, Save, Loader2, Sparkles } from "lucide-react";
+import { FileText, Download, Save, Loader2, Sparkles, FileDown } from "lucide-react";
+import { exportSchemeToDocx } from "@/utils/exportDocx";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { columnHeaders, kiswahiliSubjects } from "@/data/curriculum";
@@ -320,6 +321,13 @@ const SchemeGeneratorDialog = () => {
                   </Button>
                   <Button variant="secondary" onClick={handleSave} className="gap-2">
                     <Save className="w-4 h-4" /> Save to Library
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => exportSchemeToDocx(generatedRows!, grade, subject, strand)}
+                    className="gap-2"
+                  >
+                    <FileDown className="w-4 h-4" /> Export DOCX
                   </Button>
                   <Button onClick={handleExportPDF} className="gap-2 ml-auto">
                     <Download className="w-4 h-4" /> Export PDF
