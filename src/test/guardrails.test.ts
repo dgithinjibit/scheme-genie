@@ -237,3 +237,61 @@ describe("Guardrail 6: Key Normalization", () => {
     expect(row.specificLearningOutcome).toBe("");
   });
 });
+
+// --- GUARDRAIL 9: Lesson Count Enforcement ---
+
+function enforceLessonCount(rows: SchemeRow[], expectedLessons: number, weekStart: number, lessonsPerWeek: number): SchemeRow[] {
+  if (rows.length === expectedLessons) return rows;
+  if (rows.length > expectedLessons) {
+    const trimmed = rows.slice(0, expectedLessons);
+    return enforceWeekLessonNumbering(trimmed, weekStart, lessonsPerWeek);
+  }
+  const padded = [...rows];
+  while (padded.length < expectedLessons) {
+    const lastRow = padded[padded.length - 1];
+    padded.push({
+      ...lastRow,
+      specificLearningOutcome: lastRow.specificLearningOutcome.replace(
+        /^(By the end of the lesson)/i,
+        "By the end of the lesson (continued practice)"
+      ),
+    });
+  }
+  return enforceWeekLessonNumbering(padded, weekStart, lessonsPerWeek);
+}
+
+describe("Guardrail 9: Lesson Count Enforcement", () => {
+  const makeRow = (w: number, l: number): SchemeRow => ({
+    week: w, lesson: l, strand: "S", subStrand: "SS",
+    specificLearningOutcome: "By the end of the lesson, the learner should...",
+    keyInquiryQuestion: "Q?", learningExperiences: "Exp",
+    learningResources: "Res", assessmentMethods: "Assess", reflection: "",
+  });
+
+  it("trims excess rows to match expected count", () => {
+    const rows = Array.from({ length: 16 }, (_, i) => makeRow(1, i + 1));
+    const fixed = enforceLessonCount(rows, 14, 1, 7);
+    expect(fixed.length).toBe(14);
+    expect(fixed[13]).toMatchObject({ week: 2, lesson: 7 });
+  });
+
+  it("pads missing rows to match expected count", () => {
+    const rows = Array.from({ length: 10 }, (_, i) => makeRow(1, i + 1));
+    const fixed = enforceLessonCount(rows, 14, 1, 7);
+    expect(fixed.length).toBe(14);
+    expect(fixed[13]).toMatchObject({ week: 2, lesson: 7 });
+  });
+
+  it("returns rows unchanged when count matches", () => {
+    const rows = Array.from({ length: 14 }, (_, i) => makeRow(1, i + 1));
+    const fixed = enforceLessonCount(rows, 14, 1, 7);
+    expect(fixed.length).toBe(14);
+  });
+
+  it("pads with continued practice marker", () => {
+    const rows = [makeRow(1, 1)];
+    const fixed = enforceLessonCount(rows, 3, 1, 5);
+    expect(fixed.length).toBe(3);
+    expect(fixed[1].specificLearningOutcome).toContain("continued practice");
+  });
+});

@@ -1,4 +1,5 @@
 import { Document, Packer, Table, TableRow, TableCell, Paragraph, TextRun, WidthType, AlignmentType, BorderStyle, HeadingLevel } from "docx";
+// @ts-ignore - file-saver has no types
 import { saveAs } from "file-saver";
 import type { SchemeRow } from "@/data/curriculum/types";
 import { columnHeaders, kiswahiliSubjects } from "@/data/curriculum";
