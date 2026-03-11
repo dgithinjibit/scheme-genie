@@ -539,8 +539,12 @@ async function generateForSubStrand(
   // MASTER GUARDRAIL: validate & sanitize all rows
   const fixedRows = validateAndSanitizeRows(allRows, strand, subStrand.name, grade, subject, weekStart, lessonsPerWeek, isSw);
 
-  const totalWeeks = Math.ceil(fixedRows.length / lessonsPerWeek);
-  return { rows: fixedRows, weeksUsed: totalWeeks };
+  // GUARDRAIL 9: Enforce exact lesson count
+  const finalRows = enforceLessonCount(fixedRows, subStrand.lessons, weekStart, lessonsPerWeek);
+  console.log(`Sub-strand "${subStrand.name}": expected ${subStrand.lessons} lessons, delivering ${finalRows.length}`);
+
+  const totalWeeks = Math.ceil(finalRows.length / lessonsPerWeek);
+  return { rows: finalRows, weeksUsed: totalWeeks };
 }
 
 // Fetch reference schemes from database to enhance AI context
