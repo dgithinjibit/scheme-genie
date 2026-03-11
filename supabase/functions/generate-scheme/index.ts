@@ -486,8 +486,8 @@ async function generateForSubStrand(
     while (!rows && attempts < maxAttempts) {
       attempts++;
       try {
-        rows = await generateBatch(
-          GROQ_API_KEY, grade, subject, strand, subStrand,
+          rows = await generateBatch(
+           _apiKey, grade, subject, strand, subStrand,
           batchSize, context, isSw, currentWeek, lessonsPerWeek, batchIndex
         );
       } catch (e) {
