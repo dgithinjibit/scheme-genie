@@ -258,6 +258,35 @@ function normalizeRowKeys(raw: Record<string, unknown>): SchemeRow {
   };
 }
 
+/** GUARDRAIL 9: Enforce exact lesson count per sub-strand.
+ *  If AI produced too few rows, duplicate the last row (with incremented lesson/week).
+ *  If AI produced too many, trim the excess. */
+function enforceLessonCount(rows: SchemeRow[], expectedLessons: number, weekStart: number, lessonsPerWeek: number): SchemeRow[] {
+  if (rows.length === expectedLessons) return rows;
+
+  if (rows.length > expectedLessons) {
+    console.warn(`Guardrail 9: Trimming ${rows.length} rows to expected ${expectedLessons}`);
+    const trimmed = rows.slice(0, expectedLessons);
+    return enforceWeekLessonNumbering(trimmed, weekStart, lessonsPerWeek);
+  }
+
+  // Pad missing rows by duplicating the last row with adjusted outcomes
+  console.warn(`Guardrail 9: Padding ${rows.length} rows to expected ${expectedLessons} (${expectedLessons - rows.length} extra)`);
+  const padded = [...rows];
+  while (padded.length < expectedLessons) {
+    const lastRow = padded[padded.length - 1];
+    padded.push({
+      ...lastRow,
+      specificLearningOutcome: lastRow.specificLearningOutcome.replace(
+        /^(By the end of the lesson)/i,
+        "By the end of the lesson (continued practice)"
+      ),
+      learningExperiences: lastRow.learningExperiences,
+    });
+  }
+  return enforceWeekLessonNumbering(padded, weekStart, lessonsPerWeek);
+}
+
 /**
  * MASTER GUARDRAIL: Apply ALL validations in sequence.
  */
